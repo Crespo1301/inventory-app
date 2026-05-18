@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
+import { SheetHeader } from '@/components/ui/sheet-header';
 import { TextField } from '@/components/ui/text-field';
 import { AppText } from '@/components/ui/text';
 import { useApp } from '@/src/store/app-store';
@@ -24,6 +25,11 @@ export default function InviteFormScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const closeForm = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/manage/people');
+  };
+
   const toggleLocation = (id: string) =>
     setLocationIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
@@ -39,11 +45,16 @@ export default function InviteFormScreen() {
     }
     setBusy(true);
     try {
-      const invite = await app.createInvitation({ email, role, locationIds });
+      const result = await app.createInvitation({ email, role, locationIds });
+      const deliveryLine =
+        result.emailDelivery === 'sent'
+          ? `${result.invite.email} should receive the invitation email shortly.`
+          : `Email delivery is not configured yet, so share this code with ${result.invite.email} manually.`;
+
       Alert.alert(
-        'Invitation created',
-        `Share this code with ${invite.email}:\n\n${invite.code}\n\nThey enter it on the "Join a company" screen when they sign up.`,
-        [{ text: 'Done', onPress: () => router.back() }],
+        result.emailDelivery === 'sent' ? 'Invitation emailed' : 'Invitation created',
+        `${deliveryLine}\n\nInvitation code:\n${result.invite.code}\n\nThey enter it on the "Join a company" screen with the invited email address.`,
+        [{ text: 'Done', onPress: closeForm }],
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create the invitation.');
@@ -54,6 +65,7 @@ export default function InviteFormScreen() {
   return (
     <Screen
       topSafeArea={false}
+      header={<SheetHeader title="Invite Team Member" onClose={closeForm} />}
       footer={<Button label="Create Invitation" size="lg" loading={busy} onPress={save} />}>
       <View style={{ gap: spacing.xl }}>
         <AppText tone="muted">

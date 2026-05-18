@@ -46,6 +46,16 @@ export type Invitation = {
   createdAt: number;
 };
 
+export type InvitationEmailInput = {
+  companyName: string;
+  invitedByName: string;
+  invitedByEmail?: string;
+  inviteeEmail: string;
+  code: string;
+  role: Exclude<UserRole, 'admin'>;
+  locationNames: string[];
+};
+
 // ------------------------------------------------------------------- mappers
 
 const mapProfile = (r: any): AccountUser => ({
@@ -341,6 +351,18 @@ export async function createInvitation(input: {
     .select()
     .single();
   return mapInvitation(unwrap(res));
+}
+
+export async function sendInvitationEmail(input: InvitationEmailInput): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+    body: input,
+  });
+
+  if (error) throw new Error(error.message);
+
+  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+    throw new Error(data.error);
+  }
 }
 
 export async function deleteInvitation(id: string): Promise<void> {

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { QuantityStepper } from '@/components/ui/quantity-stepper';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
+import { SheetHeader } from '@/components/ui/sheet-header';
 import { TextField } from '@/components/ui/text-field';
 import { AppText } from '@/components/ui/text';
 import type { ServiceArea } from '@/src/domain';
@@ -27,6 +28,11 @@ export default function ItemFormScreen() {
   const [packSize, setPackSize] = useState(existing?.packSize ?? 1);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const closeForm = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/manage/items');
+  };
 
   const save = async () => {
     setError(null);
@@ -50,7 +56,7 @@ export default function ItemFormScreen() {
     } else {
       await app.addItem(payload);
     }
-    router.back();
+    closeForm();
   };
 
   const confirmDelete = () => {
@@ -62,7 +68,7 @@ export default function ItemFormScreen() {
         style: 'destructive',
         onPress: async () => {
           await app.removeItem(existing.id);
-          router.back();
+          closeForm();
         },
       },
     ]);
@@ -71,6 +77,7 @@ export default function ItemFormScreen() {
   return (
     <Screen
       topSafeArea={false}
+      header={<SheetHeader title={existing ? 'Edit Item' : 'Add Item'} onClose={closeForm} />}
       footer={
         <View style={{ gap: spacing.sm }}>
           <Button label={existing ? 'Save Changes' : 'Add Item'} size="lg" loading={busy} onPress={save} />

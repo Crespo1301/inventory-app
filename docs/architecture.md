@@ -39,6 +39,9 @@ realtime.
 - `order_lists` / `order_list_lines` — order sessions and their suggested vs.
   final quantities.
 - `invitations` — pending invites with a join code, role, and location access.
+- `supabase/functions/send-invitation-email` — optional Edge Function that
+  emails newly created invitation codes; the app falls back to manual sharing if
+  the function is unavailable.
 
 ### Access control
 

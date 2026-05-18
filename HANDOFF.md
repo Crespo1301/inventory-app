@@ -32,11 +32,14 @@ Released baseline: `v0.2.0` on 2026-05-18.
 - Supabase: Postgres + row-level security + realtime sync across devices.
 - In-app account deletion (Account screen) — meets the App Store requirement.
 - iOS-native design pass: collapsing large titles, inset grouped lists, modal
-  sheets with grabbers, native SF Symbols on iOS, loading skeletons.
+  sheets with grabbers/cancel actions, native SF Symbols on iOS, loading
+  skeletons.
 - Offline write queue: flags/orders made offline queue locally and replay on
   reconnect; a banner shows offline/unsynced state, and temp-note replacement
   no longer queues invalid server IDs.
 - EAS build config committed; privacy policy drafted (`docs/privacy-policy.md`).
+- Invite email delivery is scaffolded through a Supabase Edge Function with
+  manual code-share fallback when the function secrets are not configured yet.
 
 **Architecture map:**
 
@@ -72,8 +75,11 @@ Released baseline: `v0.2.0` on 2026-05-18.
    it at an HTTPS URL, link it in App Store Connect and from the Account screen.
 3. **App Store Connect prep** — App Privacy details, app icon, 6.9" screenshots,
    a confirmed demo account for review.
-4. **Invite email delivery** — currently a shareable code; add an Edge Function
-   to email invitations.
+4. **Deploy invite email delivery** — the app now invokes
+   `supabase/functions/send-invitation-email`, but Supabase still needs the
+   function deployed plus `RESEND_API_KEY` and `INVITE_EMAIL_FROM` secrets (and
+   optionally `INVITE_EMAIL_REPLY_TO` / `INVITE_EMAIL_APP_NAME`) before invites
+   send automatically.
 5. **Subscription tiers** — gating and billing, after real-kitchen testing.
 
 Done: in-app account deletion, the iOS-native design pass (large titles, grouped
@@ -89,7 +95,8 @@ for the full submission checklist.
   online-only (an invite code needs a real server row).
 - Offline item/location creation queues immediately but does not surface a temp
   row; the new record appears after reconnect and sync.
-- Invite delivery is a code to share manually, not an email.
+- Invite delivery falls back to manual code sharing until the Supabase Edge
+  Function is deployed with its email secrets.
 - "Confirm email" is expected OFF during testing.
 
 ---

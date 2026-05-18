@@ -61,6 +61,11 @@ export type InviteInput = {
   locationIds: string[];
 };
 
+export type CreateInvitationResult = {
+  invite: Invitation;
+  emailDelivery: 'sent' | 'manual-share';
+};
+
 export type AppValue = {
   loading: boolean;
   error: string | null;
@@ -100,7 +105,7 @@ export type AppValue = {
   addLocation: (name: string, address?: string) => Promise<void>;
   editLocation: (id: string, name: string, address?: string) => Promise<void>;
 
-  createInvitation: (input: InviteInput) => Promise<Invitation>;
+  createInvitation: (input: InviteInput) => Promise<CreateInvitationResult>;
   cancelInvitation: (id: string) => Promise<void>;
   removeTeamMember: (userId: string) => Promise<void>;
 };
@@ -429,9 +434,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // can easily retry once connected.
       const invite = await repo.createInvitation(inviteArgs);
       setInvitations((prev) => [invite, ...prev]);
-      return invite;
+
+      const invitedBy = users.find((candidate) => candidate.id === currentUserId);
+      const locationNames = input.locationIds
+        .map((locationId) => locations.find((location) => location.id === locationId)?.name)
+        .filter((name): name is string => Boolean(name));
+
+      try {
+        await repo.sendInvitationEmail({
+          companyName: company.name,
+          invitedByName: invitedBy?.name ?? 'Your manager',
+          invitedByEmail: invitedBy?.email,
+          inviteeEmail: invite.email,
+          code: invite.code,
+          role: invite.role,
+          locationNames,
+        });
+        return { invite, emailDelivery: 'sent' as const };
+      } catch {
+        return { invite, emailDelivery: 'manual-share' as const };
+      }
     },
-    [company, currentUserId],
+    [company, currentUserId, locations, users],
   );
 
   const cancelInvitation = useCallback(

@@ -7,6 +7,9 @@
    [Getting Started](./getting-started.md)).
 3. In the Supabase dashboard, **Authentication → Sign In / Providers → Email →
    "Confirm email" OFF** for testing. Otherwise sign-up returns no session.
+4. Optional for invite-email testing: deploy the `send-invitation-email` Edge
+   Function and set `RESEND_API_KEY`, `INVITE_EMAIL_FROM`, and optionally
+   `INVITE_EMAIL_REPLY_TO` / `INVITE_EMAIL_APP_NAME` in Supabase secrets.
 
 ## Running the App
 
@@ -31,7 +34,8 @@ Roles need separate accounts. The fastest path:
 1. **Sign up as an admin** — this creates the company and its first location.
 2. As the admin, go to **Account → Manage → Team & roles → Invite Team Member**.
    Create one invitation with role *Manager* and one with role *Team Member*.
-   Each produces a 6-character code.
+   Each produces a 6-character code, and if the Edge Function is deployed the
+   recipient should also receive an email.
 3. **Log out**, then use **"Join a company"** on the signup screen with an
    invited email + its code to create the manager and member accounts.
 4. Switch roles by logging out and back in. To see realtime sync, run the app on
@@ -41,8 +45,14 @@ Roles need separate accounts. The fastest path:
 
 - [ ] Sign up → land in the app as admin with one location.
 - [ ] Manage → Items → add items for both BOH and FOH (par level, unit, pack).
+- [ ] Manage → Items → open **Add Item**, use **Cancel** to return safely, then
+      reopen it and save an item.
 - [ ] Manage → Locations → add a second location.
 - [ ] Invite a manager and a team member; codes are generated.
+- [ ] If invite email delivery is configured, confirm the recipient email
+      arrives with the invite code and join instructions.
+- [ ] If invite email delivery is not configured, confirm the app falls back to
+      the manual-share code alert instead of failing the invite.
 - [ ] Join the company with a code; the new user lands scoped to the right
       location and role.
 - [ ] As a team member: flag items Low and Out — one tap, with haptic feedback.
@@ -73,7 +83,10 @@ Confirms the JS bundle builds with no import/resolution errors.
 
 ## Known Limitations
 
-- The app is **online-first**. Flagging stock with no connection will fail —
-  there is no offline write queue yet.
+- Flagging stock, order generation, and verification now queue offline writes,
+  but invitation creation is still intentionally online-only because it depends
+  on a real server-generated code.
 - "Confirm email" must stay off for frictionless test sign-ups; re-enable it for
   production.
+- Invite email delivery requires a deployed Supabase Edge Function plus Resend
+  secrets; otherwise the app falls back to manual code sharing.

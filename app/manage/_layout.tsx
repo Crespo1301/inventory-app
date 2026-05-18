@@ -15,13 +15,13 @@ export default function ManageLayout() {
       <Stack.Screen name="items" options={{ title: 'Items' }} />
       <Stack.Screen
         name="item-form"
-        options={{ title: 'Item', presentation: 'modal', sheetGrabberVisible: true }}
+        options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
       />
       <Stack.Screen name="locations" options={{ title: 'Locations' }} />
       <Stack.Screen name="people" options={{ title: 'Team' }} />
       <Stack.Screen
         name="invite-form"
-        options={{ title: 'Invite Team Member', presentation: 'modal', sheetGrabberVisible: true }}
+        options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
       />
     </Stack>
   );

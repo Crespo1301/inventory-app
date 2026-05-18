@@ -8,6 +8,23 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
+### Added
+
+- Invite email delivery scaffold via Supabase Edge Function
+  (`supabase/functions/send-invitation-email`) with Resend-based sending and a
+  client-side manual-share fallback when the function or secrets are not yet
+  configured.
+
+### Changed
+
+- Manage modal forms now use the in-app iOS-style sheet header, giving Item and
+  Invite flows an explicit Cancel path instead of relying on native modal chrome.
+- Add Item / Edit Item closes safely even when opened without stack history by
+  falling back to the Items screen.
+- Invite creation now attempts to email the invite automatically and then shows
+  either an "Invitation emailed" or manual-share confirmation instead of always
+  assuming code-only delivery.
+
 ## [0.2.0] - 2026-05-18
 
 ### Added
