@@ -8,7 +8,13 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Changed
+
+- Expo start scripts now set `EXPO_NO_DEPENDENCY_VALIDATION=1` so WSL2/tunnel
+  sessions do not crash when Expo's remote dependency-version check cannot
+  reach the Expo API.
+- Added `npm run start:lan` as a fallback when Expo's ngrok tunnel reports
+  `remote gone away`.
 
 ## [0.1.0] - 2026-05-17
 

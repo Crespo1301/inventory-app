@@ -46,7 +46,12 @@ Released baseline: `v0.1.0` on 2026-05-17.
 **Environment:**
 
 - Supabase project ref `lnzoguygntryxzcyakot`; keys in `.env`.
-- Run with `npm run start:tunnel` (tunnel required on WSL2).
+- Run with `npm run start:tunnel` (tunnel required on WSL2). The start scripts
+  skip Expo's remote dependency validation because that API fetch can fail on
+  this WSL2/network path after the tunnel is already connected.
+- If tunnel fails with ngrok `remote gone away`, use `npm run start:lan` for
+  same-network testing or `npm start` for local/browser work, then retry tunnel
+  later.
 - One-time: disable "Confirm email" in the Supabase dashboard for test signups.
 
 ## Next Steps (priority order)
