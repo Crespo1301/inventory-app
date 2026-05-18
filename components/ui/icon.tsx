@@ -23,9 +23,11 @@ import type { SFSymbol } from 'sf-symbols-typescript';
 // ---------------------------------------------------------------------------
 const SF_MAP: Partial<Record<keyof typeof Ionicons.glyphMap, SFSymbol>> = {
   // Tab bar
+  home: 'house.fill',
   cube: 'cube.fill',
   clipboard: 'clipboard.fill',
   time: 'clock.fill',
+  'stats-chart': 'chart.bar.fill',
   'person-circle': 'person.circle.fill',
 
   // Navigation / actions
@@ -38,6 +40,7 @@ const SF_MAP: Partial<Record<keyof typeof Ionicons.glyphMap, SFSymbol>> = {
   search: 'magnifyingglass',
   settings: 'gearshape.fill',
   'settings-outline': 'gearshape',
+  'lock-closed': 'lock.fill',
 
   // List rows — manage screens
   'person-outline': 'person',
@@ -83,6 +86,7 @@ const SF_MAP: Partial<Record<keyof typeof Ionicons.glyphMap, SFSymbol>> = {
   receipt: 'doc.text.fill',
   'archive-outline': 'archivebox',
   archive: 'archivebox.fill',
+  pricetags: 'tag.fill',
 };
 
 // ---------------------------------------------------------------------------

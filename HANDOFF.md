@@ -25,15 +25,24 @@ Released baseline: `v0.2.0` on 2026-05-18.
 
 - Signup creates a company + admin; login; join-a-company by invite code.
 - Role-aware app: Admin, Manager (location-scoped), Team Member (location-scoped).
+- Home dashboard: managers/admins now land on a dedicated home surface with
+  operational pulse, quick actions, and recent activity instead of jumping
+  straight into stock.
 - Stock: one-tap Low/Out capture, EN/ES item-name toggle.
 - Order Planner: explainable suggested quantities, manager override, verify,
   export/share. History of verified orders.
+- Analytics: managers/admins can compare verified order activity across day,
+  week, month, and year views, with current-vs-previous metrics, area mix, top
+  movers, and seasonal watchlists.
 - Manage: items, locations, team members, invitations.
 - Supabase: Postgres + row-level security + realtime sync across devices.
 - In-app account deletion (Account screen) — meets the App Store requirement.
 - iOS-native design pass: collapsing large titles, inset grouped lists, modal
   sheets with grabbers/cancel actions, native SF Symbols on iOS, loading
   skeletons.
+- Navigation hardening: root Manage pages now expose a visible Close action, and
+  tab chrome plus scroll padding are safer around the bottom inset/home
+  indicator.
 - Offline write queue: flags/orders made offline queue locally and replay on
   reconnect; a banner shows offline/unsynced state, and temp-note replacement
   no longer queues invalid server IDs.
@@ -56,6 +65,9 @@ Released baseline: `v0.2.0` on 2026-05-18.
 - Run with `npm run start:tunnel` (tunnel required on WSL2). The start scripts
   skip Expo's remote dependency validation because that API fetch can fail on
   this WSL2/network path after the tunnel is already connected.
+- Local web preview currently needs the repo's pinned Node `20.19.4`; this
+  shell was on `20.19.0`, and `npm run web` crashed in Expo/Metro with
+  `configs.toReversed is not a function`.
 - If tunnel fails with ngrok `remote gone away`, use `npm run start:lan` for
   same-network testing or `npm start` for local/browser work, then retry tunnel
   later.
@@ -64,23 +76,26 @@ Released baseline: `v0.2.0` on 2026-05-18.
 
 ## Next Steps (priority order)
 
-1. **First EAS build** — config is in place: `eas.json` (development / preview /
+1. **Visual QA on the new dashboard/nav shell** — re-run device and/or web QA on
+   Node `20.19.4` specifically, focusing on: Home ↔ Stock ↔ Analytics tab flow,
+   Manage close paths, and lower-edge spacing on iPhones with a home indicator.
+2. **First EAS build** — config is in place: `eas.json` (development / preview /
    production profiles), iOS `bundleIdentifier` + Android `package`, and
    `docs/eas-build.md`. Remaining is account-gated and interactive: run
    `eas login` → `eas init` → `eas build --profile production --platform ios`
    → `eas submit` to reach TestFlight. Needs an Expo account and the Apple
    Developer Program.
-2. **Host the privacy policy** — `docs/privacy-policy.md` is drafted; fill its
+3. **Host the privacy policy** — `docs/privacy-policy.md` is drafted; fill its
    placeholders (`[Effective date]`, `[Company name]`, `[support email]`), host
    it at an HTTPS URL, link it in App Store Connect and from the Account screen.
-3. **App Store Connect prep** — App Privacy details, app icon, 6.9" screenshots,
+4. **App Store Connect prep** — App Privacy details, app icon, 6.9" screenshots,
    a confirmed demo account for review.
-4. **Deploy invite email delivery** — the app now invokes
+5. **Deploy invite email delivery** — the app now invokes
    `supabase/functions/send-invitation-email`, but Supabase still needs the
    function deployed plus `RESEND_API_KEY` and `INVITE_EMAIL_FROM` secrets (and
    optionally `INVITE_EMAIL_REPLY_TO` / `INVITE_EMAIL_APP_NAME`) before invites
    send automatically.
-5. **Subscription tiers** — gating and billing, after real-kitchen testing.
+6. **Subscription tiers** — gating and billing, after real-kitchen testing.
 
 Done: in-app account deletion, the iOS-native design pass (large titles, grouped
 lists, sheets, SF Symbols, skeletons), the offline write queue, EAS build config,
@@ -97,6 +112,8 @@ for the full submission checklist.
   row; the new record appears after reconnect and sync.
 - Invite delivery falls back to manual code sharing until the Supabase Edge
   Function is deployed with its email secrets.
+- Expo web preview is currently blocked in this shell until Node is bumped from
+  `20.19.0` to the repo target `20.19.4`.
 - "Confirm email" is expected OFF during testing.
 
 ---

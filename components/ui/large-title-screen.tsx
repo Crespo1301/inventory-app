@@ -106,7 +106,7 @@ export function LargeTitleScreen({
           {
             paddingTop: insets.top + NAV_BAR_HEIGHT + spacing.sm,
             paddingHorizontal: spacing.lg,
-            paddingBottom: spacing.xxxl,
+            paddingBottom: insets.bottom + spacing.xxxl + spacing.xl,
           },
           contentStyle,
         ]}>

@@ -21,6 +21,10 @@ Always use **tunnel mode** for device testing. The plain `npm start` serves over
 the LAN, which a phone cannot reach on WSL2 or many networks — the QR connects
 but then times out. Tunnel routes through a public URL that always works.
 
+If you want to use **Expo web** for layout QA, make sure the shell is on Node
+`20.19.4` from `.nvmrc`. In this repo, Expo web crashed on Node `20.19.0` with
+`configs.toReversed is not a function`.
+
 - **iPhone:** install **Expo Go** from the App Store, scan the QR with the
   Camera app.
 - **Android:** install **Expo Go**, scan the QR from inside Expo Go.
@@ -47,8 +51,15 @@ Roles need separate accounts. The fastest path:
 - [ ] Manage → Items → add items for both BOH and FOH (par level, unit, pack).
 - [ ] Manage → Items → open **Add Item**, use **Cancel** to return safely, then
       reopen it and save an item.
+- [ ] Manage root pages (**Items**, **Locations**, **Team**) all expose a visible
+      Close path back to the main app when opened from Account/Home.
 - [ ] Manage → Locations → add a second location.
 - [ ] Invite a manager and a team member; codes are generated.
+- [ ] Home tab: check the operational pulse, quick actions, and recent activity.
+- [ ] Stock lives on its own tab and still supports one-tap Low / Out capture.
+- [ ] Analytics tab (manager/admin): switch between day/week/month/year and
+      confirm current vs. previous metrics, top movers, and seasonal-pressure
+      messaging render without clipping.
 - [ ] If invite email delivery is configured, confirm the recipient email
       arrives with the invite code and join instructions.
 - [ ] If invite email delivery is not configured, confirm the app falls back to

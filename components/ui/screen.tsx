@@ -31,7 +31,7 @@ export function Screen({
   const padding: ViewStyle = {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: insets.bottom + spacing.xxl,
   };
 
   return (

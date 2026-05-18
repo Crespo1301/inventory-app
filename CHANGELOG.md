@@ -10,6 +10,15 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ### Added
 
+- A true manager/admin home dashboard (`app/(tabs)/index.tsx`) with operational
+  pulse cards, quick actions, recent activity, and direct routes into stock,
+  orders, analytics, and management.
+- A dedicated Stock tab (`app/(tabs)/stock.tsx`) so home/dashboard and the
+  whiteboard-replacement workflow are separate, instead of overloading one tab.
+- A first analytics surface (`app/(tabs)/analytics.tsx`,
+  `src/domain/analytics.ts`) with day/week/month/year period views, current vs.
+  previous period comparisons, area mix, top movers, and seasonal pressure
+  watchlists based on verified order history.
 - Invite email delivery scaffold via Supabase Edge Function
   (`supabase/functions/send-invitation-email`) with Resend-based sending and a
   client-side manual-share fallback when the function or secrets are not yet
@@ -17,6 +26,13 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ### Changed
 
+- The tab shell is now safe-area-aware at the bottom, reducing the clipped /
+  too-low feel on devices with a home indicator.
+- Shared screen frames now add more bottom breathing room so lower content and
+  actions sit cleanly above the tab bar and device inset.
+- Root manage pages now have an explicit Close action in the header, so Team,
+  Items, and Locations always have a visible way back to the main app even when
+  stack history is shallow.
 - Manage modal forms now use the in-app iOS-style sheet header, giving Item and
   Invite flows an explicit Cancel path instead of relying on native modal chrome.
 - Add Item / Edit Item closes safely even when opened without stack history by

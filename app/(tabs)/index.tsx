@@ -1,8 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { useRouter, type Href } from 'expo-router';
 
 import { colors, spacing } from '@/constants/design';
 import { Badge } from '@/components/ui/badge';
@@ -10,224 +8,220 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { LargeTitleScreen } from '@/components/ui/large-title-screen';
-import { PressableScale } from '@/components/ui/pressable-scale';
-import { Segmented } from '@/components/ui/segmented';
-import { TextField } from '@/components/ui/text-field';
+import { ListRow, ListSection } from '@/components/ui/list';
 import { AppText } from '@/components/ui/text';
-import type { Item, ServiceArea } from '@/src/domain';
-import { can } from '@/src/domain/permissions';
+import { can, roleLabel } from '@/src/domain/permissions';
 import { useApp } from '@/src/store/app-store';
 
-export default function StockScreen() {
+const ICON_INSET = spacing.lg + 30 + spacing.md;
+
+export default function HomeScreen() {
   const router = useRouter();
   const app = useApp();
-  const [query, setQuery] = useState('');
+  const stockHref = '/stock' as Href;
+  const analyticsHref = '/analytics' as Href;
 
-  const location = app.locations.find((l) => l.id === app.currentLocationId);
+  const location = app.locations.find((entry) => entry.id === app.currentLocationId);
   const openNotes = app.openNotesForArea(app.currentLocationId, app.currentArea);
-  const noteByItem = useMemo(() => {
-    const map = new Map<string, (typeof openNotes)[number]>();
-    for (const n of openNotes) if (!map.has(n.itemId)) map.set(n.itemId, n);
-    return map;
-  }, [openNotes]);
+  const openOrder = app.orderLists.find(
+    (list) => list.locationId === app.currentLocationId && list.area === app.currentArea && list.status === 'open',
+  );
+  const pendingInvites = app.invitations.filter((invitation) => invitation.status === 'pending');
+  const recentVerified = useMemo(
+    () =>
+      app.orderLists
+        .filter((list) => list.status === 'verified' && list.locationId === app.currentLocationId)
+        .sort((a, b) => (b.verifiedAt ?? 0) - (a.verifiedAt ?? 0))
+        .slice(0, 3),
+    [app.currentLocationId, app.orderLists],
+  );
 
-  const items = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return app.items
-      .filter((i) => i.area === app.currentArea)
-      .filter((i) => !q || app.displayName(i).toLowerCase().includes(q) || i.name.toLowerCase().includes(q))
-      .sort((a, b) => {
-        // Flagged items float to the top so the order list builds itself.
-        const fa = noteByItem.has(a.id) ? 0 : 1;
-        const fb = noteByItem.has(b.id) ? 0 : 1;
-        return fa - fb || app.displayName(a).localeCompare(app.displayName(b));
-      });
-  }, [app, query, noteByItem]);
-
-  const quickFlag = (item: Item, status: 'low' | 'out') => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    void app.flagItem({ itemId: item.id, status, urgency: status === 'out' ? 'high' : 'medium' });
-  };
-
-  const areaItemCount = app.items.filter((i) => i.area === app.currentArea).length;
-  const canManage = can(app.currentRole, 'manageItems');
+  const canReviewOrders = can(app.currentRole, 'viewOrders');
+  const canManagePeople = can(app.currentRole, 'managePeople');
+  const canManageLocations = can(app.currentRole, 'manageLocations');
+  const canManageItems = can(app.currentRole, 'manageItems');
 
   return (
-    <LargeTitleScreen
-      title="Stock"
-      subtitle={`${location?.name ?? 'Location'} · tap Low or Out to flag an item`}
-      headerRight={<TranslationToggle />}>
-      <View style={{ gap: spacing.lg }}>
-        <Segmented<ServiceArea>
-          value={app.currentArea}
-          onChange={app.setArea}
-          options={[
-            { value: 'boh', label: 'Back of House', color: colors.boh },
-            { value: 'foh', label: 'Front of House', color: colors.foh },
-          ]}
-        />
+    <LargeTitleScreen title="Home" subtitle={`${location?.name ?? 'Location'} · ${roleLabel[app.currentRole]}`}>
+      <View style={{ gap: spacing.xl }}>
+        <Card elevated style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <AppText variant="heading">Operational pulse</AppText>
+              <AppText tone="muted">
+                {canReviewOrders
+                  ? 'Keep flags moving, compare demand, and step into orders before prep gets squeezed.'
+                  : 'Start in Stock, flag what is low or out, and your manager picks it up from there.'}
+              </AppText>
+            </View>
+            <Badge tone={app.currentArea === 'foh' ? 'foh' : 'boh'} label={app.currentArea.toUpperCase()} />
+          </View>
 
-        <TextField
-          icon="search"
-          placeholder="Find an item…"
-          value={query}
-          onChangeText={setQuery}
-          returnKeyType="search"
-        />
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <PulseMetric
+              label="Open flags"
+              value={openNotes.length}
+              tone={openNotes.length > 0 ? 'high' : 'low'}
+              helper={openNotes.length > 0 ? 'Needs review' : 'Clear right now'}
+            />
+            <PulseMetric
+              label="Order status"
+              value={openOrder ? 'Open' : 'Ready'}
+              tone={openOrder ? 'info' : 'medium'}
+              helper={openOrder ? 'Draft in progress' : 'Build when ready'}
+            />
+          </View>
+        </Card>
 
-        {openNotes.length > 0 ? (
-          <Badge
-            tone="high"
-            icon="flag"
-            label={`${openNotes.length} item${openNotes.length > 1 ? 's' : ''} flagged this week`}
+        <ListSection title="QUICK ACTIONS" separatorInset={ICON_INSET}>
+          <ListRow
+            icon="cube"
+            iconBg={colors.primarySoft}
+            iconColor={colors.primary}
+            label="Open stock board"
+            sublabel="Flag items and move through the current service area"
+            onPress={() => router.push(stockHref)}
           />
+          {canReviewOrders ? (
+            <ListRow
+              icon="clipboard"
+              iconBg={colors.infoSoft}
+              iconColor={colors.info}
+              label="Review order planner"
+              sublabel={openOrder ? 'Continue the current draft order' : 'Build the next order from active flags'}
+              onPress={() => router.push('/orders')}
+            />
+          ) : null}
+          {canReviewOrders ? (
+            <ListRow
+              icon="stats-chart"
+              iconBg={colors.surfaceSunken}
+              iconColor={colors.text}
+              label="View analytics"
+              sublabel="Compare this period with prior demand and watch seasonal pressure"
+              onPress={() => router.push(analyticsHref)}
+            />
+          ) : null}
+        </ListSection>
+
+        {(canManageItems || canManagePeople || canManageLocations) ? (
+          <ListSection title="MANAGEMENT" separatorInset={ICON_INSET}>
+            {canManageItems ? (
+              <ListRow
+                icon="pricetags"
+                iconBg={colors.primarySoft}
+                iconColor={colors.primary}
+                label="Items & par levels"
+                sublabel="Keep your catalog current and pars realistic"
+                onPress={() => router.push('/manage/items')}
+              />
+            ) : null}
+            {canManagePeople ? (
+              <ListRow
+                icon="people"
+                iconBg={colors.infoSoft}
+                iconColor={colors.info}
+                label="Team & invitations"
+                sublabel={
+                  pendingInvites.length > 0
+                    ? `${pendingInvites.length} invite${pendingInvites.length === 1 ? '' : 's'} still pending`
+                    : 'Invite managers and team members, then track pending access'
+                }
+                onPress={() => router.push('/manage/people')}
+              />
+            ) : null}
+            {canManageLocations ? (
+              <ListRow
+                icon="storefront"
+                iconBg={colors.bohSoft}
+                iconColor={colors.boh}
+                label="Locations"
+                sublabel="Add sites and keep addresses organized"
+                onPress={() => router.push('/manage/locations')}
+              />
+            ) : null}
+          </ListSection>
         ) : null}
 
-        {items.length === 0 ? (
-          areaItemCount === 0 ? (
-            <View style={{ gap: spacing.lg }}>
-              <EmptyState
-                icon="cube-outline"
-                title="No items in this area yet"
-                message={
-                  canManage
-                    ? 'Add the items your team uses so they can be flagged and ordered.'
-                    : 'Ask a manager to add items for this area.'
-                }
-              />
-              {canManage ? (
-                <Button
-                  label="Add Items"
-                  icon="add"
-                  onPress={() => router.push('/manage/items')}
-                  fullWidth={false}
-                  style={{ alignSelf: 'center' }}
-                />
-              ) : null}
-            </View>
+        <View style={{ gap: spacing.md }}>
+          <AppText variant="heading">Recent activity</AppText>
+          {recentVerified.length === 0 ? (
+            <EmptyState
+              icon="time-outline"
+              title="No verified orders yet"
+              message="As soon as a manager verifies an order, it shows up here and in History."
+            />
           ) : (
-            <EmptyState icon="search" title="No items match" message="Try a different name or switch the area." />
-          )
-        ) : (
-          <View style={{ gap: spacing.sm }}>
-            {items.map((item) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                flagged={noteByItem.get(item.id)}
-                displayName={app.displayName(item)}
-                onQuickFlag={(status) => quickFlag(item, status)}
-                onOpen={() => router.push({ pathname: '/flag', params: { itemId: item.id } })}
-              />
-            ))}
-          </View>
-        )}
+            <View style={{ gap: spacing.sm }}>
+              {recentVerified.map((list) => {
+                const lineCount = app.orderLines.filter((line) => line.orderListId === list.id).length;
+                return (
+                  <Card key={list.id} style={{ gap: spacing.xs }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <AppText variant="bodyStrong">
+                        {new Date(list.verifiedAt ?? list.createdAt).toLocaleDateString(undefined, {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </AppText>
+                      <Badge tone={list.area === 'foh' ? 'foh' : 'boh'} label={list.area.toUpperCase()} />
+                    </View>
+                    <AppText variant="caption" tone="muted">
+                      {lineCount} line{lineCount === 1 ? '' : 's'} verified for {location?.name ?? 'this location'}
+                    </AppText>
+                  </Card>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        {!canReviewOrders ? (
+          <Button label="Go To Stock" icon="cube" onPress={() => router.push(stockHref)} />
+        ) : null}
       </View>
     </LargeTitleScreen>
   );
 }
 
-function TranslationToggle() {
-  const { showSpanish, toggleSpanish } = useApp();
-  return (
-    <PressableScale
-      accessibilityRole="switch"
-      accessibilityState={{ checked: showSpanish }}
-      accessibilityLabel="Toggle Spanish item names"
-      onPress={toggleSpanish}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs + 2,
-        backgroundColor: showSpanish ? colors.infoSoft : colors.surfaceSunken,
-        borderRadius: 999,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-      }}>
-      <Ionicons name="language" size={16} color={showSpanish ? colors.infoPressed : colors.textMuted} />
-      <AppText variant="label" style={{ color: showSpanish ? colors.infoPressed : colors.textMuted }}>
-        {showSpanish ? 'ES' : 'EN'}
-      </AppText>
-    </PressableScale>
-  );
-}
-
-function ItemRow({
-  item,
-  flagged,
-  displayName,
-  onQuickFlag,
-  onOpen,
-}: {
-  item: Item;
-  flagged?: { status: string; urgency: string };
-  displayName: string;
-  onQuickFlag: (status: 'low' | 'out') => void;
-  onOpen: () => void;
-}) {
-  return (
-    <Card padded={false}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <PressableScale
-          onPress={onOpen}
-          accessibilityRole="button"
-          accessibilityLabel={`Add detail for ${displayName}`}
-          style={{ flex: 1, padding: spacing.lg, gap: 4 }}>
-          <AppText variant="bodyStrong" numberOfLines={1}>
-            {displayName}
-          </AppText>
-          <AppText variant="caption" tone="subtle">
-            {item.category} · par {item.parLevel} {item.unit}
-          </AppText>
-        </PressableScale>
-
-        <View style={{ paddingRight: spacing.md }}>
-          {flagged ? (
-            <PressableScale onPress={onOpen} accessibilityRole="button" accessibilityLabel="Edit flag">
-              <Badge
-                tone={flagged.status === 'out' ? 'high' : 'medium'}
-                dot
-                label={flagged.status === 'out' ? 'Out' : 'Low'}
-              />
-            </PressableScale>
-          ) : (
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <QuickButton label="Low" tone="medium" onPress={() => onQuickFlag('low')} />
-              <QuickButton label="Out" tone="high" onPress={() => onQuickFlag('out')} />
-            </View>
-          )}
-        </View>
-      </View>
-    </Card>
-  );
-}
-
-function QuickButton({
+function PulseMetric({
   label,
+  value,
+  helper,
   tone,
-  onPress,
 }: {
   label: string;
-  tone: 'medium' | 'high';
-  onPress: () => void;
+  value: number | string;
+  helper: string;
+  tone: 'high' | 'medium' | 'low' | 'info';
 }) {
-  const bg = tone === 'high' ? colors.urgentHigh : colors.urgentMedium;
+  const bg =
+    tone === 'high'
+      ? colors.urgentHighSoft
+      : tone === 'medium'
+        ? colors.urgentMediumSoft
+        : tone === 'info'
+          ? colors.infoSoft
+          : colors.primarySoft;
+
   return (
-    <PressableScale
-      accessibilityRole="button"
-      accessibilityLabel={`Mark ${label}`}
-      onPress={onPress}
+    <View
       style={{
-        minWidth: 60,
-        height: 48,
-        borderRadius: 12,
+        flex: 1,
+        minHeight: 108,
+        borderRadius: 16,
         backgroundColor: bg,
-        alignItems: 'center',
-        justifyContent: 'center',
+        padding: spacing.lg,
+        justifyContent: 'space-between',
       }}>
-      <AppText variant="label" style={{ color: colors.textOnColor }}>
+      <AppText variant="caption" tone="muted">
         {label}
       </AppText>
-    </PressableScale>
+      <AppText variant="title">{String(value)}</AppText>
+      <AppText variant="caption" tone="muted">
+        {helper}
+      </AppText>
+    </View>
   );
 }

@@ -10,7 +10,7 @@ devices via realtime subscriptions.
 
 - `app/` — Expo Router screens and navigation.
   - `app/(auth)/` — login, signup, join-a-company.
-  - `app/(tabs)/` — Stock, Orders, History, Account (tabs vary by role).
+  - `app/(tabs)/` — Home, Stock, Orders, History, Analytics, Account (tabs vary by role).
   - `app/manage/` — items, locations, people, invitations.
 - `components/ui/` — the design-system component library.
 - `constants/design.ts` — design tokens (color, spacing, typography, motion).
@@ -62,6 +62,20 @@ The app loads a full company snapshot on sign-in and subscribes to Postgres
 changes, so a flag raised on one device appears on others within about half a
 second. Server-side RLS is the real access boundary — client-side role checks are
 only for showing and hiding UI.
+
+## Analytics V1
+
+The current analytics surface is derived from verified `order_lists` and
+`order_list_lines`. It compares current vs. previous day/week/month/year windows
+for the working location, then layers in:
+
+- total verified orders
+- units ordered
+- distinct items touched
+- average units per order
+- BOH vs. FOH area mix
+- top movers for the current window
+- a seasonal watchlist using the same month from prior years, when available
 
 ## Recommendation Engine V1
 
