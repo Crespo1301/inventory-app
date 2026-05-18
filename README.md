@@ -84,6 +84,7 @@ restaurant; each company defines its own locations, items, par levels, and team.
 - [Testing](./docs/testing.md)
 - [iOS Design Guidelines](./docs/ios-design-guidelines.md)
 - [App Store Requirements](./docs/app-store-requirements.md)
+- [EAS Build & TestFlight](./docs/eas-build.md)
 - [Launch Roadmap](./docs/launch-roadmap.md)
 - [Security Checklist](./SECURITY-CHECKLIST.md)
 - [AI Workflow](./AI-WORKFLOW.md)

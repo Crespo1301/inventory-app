@@ -8,6 +8,13 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
+### Added
+
+- EAS build setup: `eas.json` with `development` / `preview` / `production`
+  profiles, iOS `bundleIdentifier` and Android `package`
+  (`com.csolutions.inventoryapp`), and a build/TestFlight guide
+  (`docs/eas-build.md`).
+
 ### Changed
 
 - Expo start scripts now set `EXPO_NO_DEPENDENCY_VALIDATION=1` so WSL2/tunnel

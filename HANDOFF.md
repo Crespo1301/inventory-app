@@ -53,11 +53,16 @@ Released baseline: `v0.1.0` on 2026-05-17.
   same-network testing or `npm start` for local/browser work, then retry tunnel
   later.
 - One-time: disable "Confirm email" in the Supabase dashboard for test signups.
+- EAS build config is committed (`eas.json`, bundle IDs); see `docs/eas-build.md`.
 
 ## Next Steps (priority order)
 
-1. **EAS build setup** — `eas.json`, iOS `bundleIdentifier`, Android `package`;
-   first builds to TestFlight / internal testing.
+1. **First EAS build** — config is in place: `eas.json` (development / preview /
+   production profiles), iOS `bundleIdentifier` + Android `package`, and
+   `docs/eas-build.md`. Remaining is account-gated and interactive: run
+   `eas login` → `eas init` → `eas build --profile production --platform ios`
+   → `eas submit` to reach TestFlight. Needs an Expo account and the Apple
+   Developer Program.
 2. **Offline write queue** — the app is online-first; flagging offline fails.
    Queue writes locally and replay on reconnect.
 3. **Privacy policy + App Store Connect** — host a policy, fill App Privacy
