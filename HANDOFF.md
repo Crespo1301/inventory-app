@@ -19,7 +19,7 @@ Leave the repo so a fresh agent can read `README.md` → `HANDOFF.md` and start.
 
 A working, multi-role restaurant inventory & ordering app on a Supabase backend.
 `npm run verify` (lint + typecheck) passes; the iOS bundle exports clean.
-Released baseline: `v0.1.0` on 2026-05-17.
+Released baseline: `v0.2.0` on 2026-05-18.
 
 **Working end to end:**
 
@@ -34,7 +34,8 @@ Released baseline: `v0.1.0` on 2026-05-17.
 - iOS-native design pass: collapsing large titles, inset grouped lists, modal
   sheets with grabbers, native SF Symbols on iOS, loading skeletons.
 - Offline write queue: flags/orders made offline queue locally and replay on
-  reconnect; a banner shows offline/unsynced state.
+  reconnect; a banner shows offline/unsynced state, and temp-note replacement
+  no longer queues invalid server IDs.
 - EAS build config committed; privacy policy drafted (`docs/privacy-policy.md`).
 
 **Architecture map:**
@@ -86,6 +87,8 @@ for the full submission checklist.
 
 - Offline capture works via the outbox; `createInvitation` is intentionally
   online-only (an invite code needs a real server row).
+- Offline item/location creation queues immediately but does not surface a temp
+  row; the new record appears after reconnect and sync.
 - Invite delivery is a code to share manually, not an email.
 - "Confirm email" is expected OFF during testing.
 
@@ -113,8 +116,8 @@ Paste this to bring Codex up to speed:
 > Build/test: `npm run start:tunnel`, `.env` holds Supabase keys, disable
 > "Confirm email" in Supabase for test signups. Verify with `npm run verify`.
 >
-> Current priorities are in `HANDOFF.md` → Next Steps (start with in-app account
-> deletion — it is an App Store blocker).
+> Current priorities are in `HANDOFF.md` → Next Steps (start with the first EAS
+> build / TestFlight path, then host the privacy policy).
 >
 > When you finish any change, update `CHANGELOG.md` and `HANDOFF.md` before
 > handing back. That rule is mandatory for every session.

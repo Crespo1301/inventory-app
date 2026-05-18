@@ -31,6 +31,7 @@ export type OutboxOp =
   | {
       type: 'insertNote';
       args: {
+        clientId?: string;
         itemId: string;
         locationId: string;
         area: ServiceArea;
@@ -113,6 +114,14 @@ export async function enqueue(op: OutboxOp): Promise<QueueEntry> {
   return entry;
 }
 
+/** Removes any queued offline note insert that belongs to the given temp id. */
+export async function removeQueuedInsertNote(clientId: string): Promise<void> {
+  const entries = await read();
+  await write(
+    entries.filter((entry) => !(entry.op.type === 'insertNote' && entry.op.args.clientId === clientId)),
+  );
+}
+
 /**
  * Replays every queued operation against Supabase in insertion order.
  *
@@ -171,7 +180,16 @@ function isNetworkError(msg: string): boolean {
 async function replay(op: OutboxOp): Promise<void> {
   switch (op.type) {
     case 'insertNote':
-      await repo.insertNote(op.args);
+      await repo.insertNote({
+        itemId: op.args.itemId,
+        locationId: op.args.locationId,
+        area: op.args.area,
+        status: op.args.status,
+        urgency: op.args.urgency,
+        quantityOnHand: op.args.quantityOnHand,
+        note: op.args.note,
+        createdBy: op.args.createdBy,
+      });
       break;
     case 'resolveNote':
       await repo.resolveNote(op.args.id);

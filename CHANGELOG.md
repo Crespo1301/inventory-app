@@ -8,6 +8,8 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-18
+
 ### Added
 
 - EAS build setup: `eas.json` with `development` / `preview` / `production`
@@ -31,6 +33,12 @@ off. See [HANDOFF.md](./HANDOFF.md).
   reach the Expo API.
 - Added `npm run start:lan` as a fallback when Expo's ngrok tunnel reports
   `remote gone away`.
+- Offline note replacement/removal no longer queues impossible server writes for
+  temp note IDs; unsynced note edits now reconcile safely when connectivity
+  returns.
+- Offline item/location creation no longer fabricates temp records with IDs that
+  can be referenced before Supabase assigns a real row; those entries now appear
+  after the queued write syncs.
 
 ## [0.1.0] - 2026-05-17
 

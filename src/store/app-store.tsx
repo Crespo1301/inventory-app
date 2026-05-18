@@ -222,15 +222,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch {
         // Offline path: apply an optimistic note with a temp id so the stock
         // screen reflects the flag immediately.
+        const tempId = `tmp-${Date.now()}`;
         const tempNote: LowStockNote = {
-          id: `tmp-${Date.now()}`,
+          id: tempId,
           ...noteArgs,
           createdByUserId: currentUserId,
           createdAt: Date.now(),
           resolvedAt: undefined,
         };
         setNotes((prev) => [tempNote, ...prev]);
-        await outbox.enqueue({ type: 'insertNote', args: noteArgs });
+        await outbox.enqueue({ type: 'insertNote', args: { clientId: tempId, ...noteArgs } });
         await flushOutbox(reload);
       }
     },
@@ -239,14 +240,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resolveNote = useCallback(
     async (noteId: string) => {
+      if (noteId.startsWith('tmp-')) {
+        setNotes((prev) => prev.filter((n) => n.id !== noteId));
+        await outbox.removeQueuedInsertNote(noteId);
+        await flushOutbox(reload);
+        return;
+      }
+
       const at = Date.now();
       // Optimistic update first — the note disappears from the active list.
       setNotes((prev) => prev.map((n) => (n.id === noteId ? { ...n, resolvedAt: at } : n)));
       try {
         await repo.resolveNote(noteId);
       } catch {
-        // If offline, queue the resolve. The temp-id case (note created offline)
-        // will reconcile when the outbox flushes and a reload follows.
         await outbox.enqueue({ type: 'resolveNote', args: { id: noteId } });
         await flushOutbox(reload);
       }
@@ -345,9 +351,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const item = await repo.insertItem(itemArgs);
         setItems((prev) => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
       } catch {
-        // Optimistic temp item so Manage > Items shows it immediately.
-        const tempItem: Item = { id: `tmp-${Date.now()}`, ...itemArgs };
-        setItems((prev) => [...prev, tempItem].sort((a, b) => a.name.localeCompare(b.name)));
         await outbox.enqueue({ type: 'insertItem', args: itemArgs as any });
         await flushOutbox(reload);
       }
@@ -390,13 +393,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const loc = await repo.insertLocation(company.id, name, address);
         setLocations((prev) => [...prev, loc]);
       } catch {
-        const tempLoc: Location = {
-          id: `tmp-${Date.now()}`,
-          companyId: company.id,
-          name,
-          address,
-        };
-        setLocations((prev) => [...prev, tempLoc]);
         await outbox.enqueue({ type: 'insertLocation', args: { companyId: company.id, name, address } });
         await flushOutbox(reload);
       }
