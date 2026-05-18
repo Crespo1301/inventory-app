@@ -1,12 +1,11 @@
 # Getting Started
 
-## 1. Install the Required Runtime
+## 1. Install the Runtime
 
-This project needs Node `20.19.4` or newer. The current Expo/React Native stack warns on `20.19.0`.
+Node `20.19.4` or newer. The repo includes an `.nvmrc`.
 
 ```bash
 cd /home/cresp3/inventory-app
-nvm install
 nvm use
 node -v
 ```
@@ -17,50 +16,55 @@ node -v
 npm install
 ```
 
-## 3. Start the App
+## 3. Configure Supabase
 
-```bash
-npm start
+The app connects to a Supabase project. Connection values live in `.env`:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+EXPO_PUBLIC_SUPABASE_KEY=sb_publishable_xxx
 ```
 
-Options:
+Copy `.env.example` to `.env` if it is missing. The publishable key is safe to
+ship in a client build — row-level security is what protects data.
 
-- Press `a` for Android emulator/device.
-- Press `i` for iOS simulator on macOS.
-- Scan the QR code with Expo Go for quick device testing.
-- Run `npm run web` for rough browser checks, but mobile behavior is the priority.
+### One-time: allow sign-up without email confirmation (for testing)
 
-## 4. Verify Before Committing
+New Supabase projects require email confirmation, which blocks sign-in during
+local testing. In the Supabase dashboard:
+
+> **Authentication → Sign In / Providers → Email → turn off "Confirm email"**
+
+Re-enable it before a public release.
+
+## 4. Run the App
+
+```bash
+npm run start:tunnel
+```
+
+Use `start:tunnel` so a physical phone can reach the dev server — this is required
+on WSL2 and any setup where the phone and computer are not on a directly routable
+network. Then:
+
+- Install **Expo Go** on the device.
+- Scan the QR code with the iPhone Camera, or with Expo Go on Android.
+- `npm start` (no tunnel) works only when the device is on the same routable LAN.
+- Press `a` / `i` for an Android emulator or iOS simulator.
+
+## 5. Verify Before Committing
 
 ```bash
 npm run verify
 ```
 
-## 5. Check AI Tooling
+Runs lint and TypeScript checks.
 
-```bash
-npm run mcp:doctor
-```
+## 6. Store Submission
 
-Copy `.mcp.example.json` to `.mcp.json` only if it is missing. Real keys should live in `/home/cresp3/.env.ai.local` or local `.env.ai.local`.
-
-## 6. First Product Build Path
-
-1. Replace the starter Expo tabs with app-specific tabs:
-   - Notes
-   - Inventory
-   - Order
-   - History
-   - Settings
-2. Add SQLite schema and migrations.
-3. Build low-stock note capture.
-4. Build item master list with par levels and units.
-5. Build order suggestion logic.
-6. Add export/share order list.
-7. Test in a real kitchen workflow for one week.
-
-## 7. App Store Direction
-
-- Android: create a Google Play Console developer account, then build an Android App Bundle with EAS Build.
-- iOS: enroll in the Apple Developer Program, then build and submit with EAS Build/Submit.
-- Keep the first release private/internal until the kitchen workflow feels reliable.
+- **Android:** create a Google Play Console account, then build an Android App
+  Bundle with EAS Build.
+- **iOS:** enroll in the Apple Developer Program, then build and submit with EAS
+  Build / Submit.
+- Keep the first release in internal/closed testing until the kitchen workflow
+  is proven.

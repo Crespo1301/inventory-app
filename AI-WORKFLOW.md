@@ -1,42 +1,45 @@
 # AI Workflow
 
-## Codex
-
-Use Codex for implementation, repo organization, testing, release hygiene, and code review. Codex should keep the app buildable and keep documentation aligned with the current product direction.
-
-Good Codex tasks:
-
-- Set up storage and migrations.
-- Build screens and navigation.
-- Add validation and tests.
-- Run `npm run verify`.
-- Prepare commits, tags, and releases.
+This repo overrides the default workspace role split.
 
 ## Claude
 
-Use Claude for mobile UX, product critique, screen copy, workflow simplification, and design polish.
+Claude sets product direction **and implements it**. That includes product and
+UX decisions, screen composition, the design system, data model, Supabase
+backend, and feature code. Claude owns the build end to end.
 
-Good Claude tasks:
+Good Claude work:
 
-- Critique the order-planning flow.
-- Design the low-stock capture experience.
-- Suggest screen hierarchy and empty states.
-- Review whether the app feels fast enough for a kitchen.
+- Decide product direction and screen flows.
+- Build screens, navigation, and the design system.
+- Design and apply database schema, RLS, and migrations.
+- Implement features and validation.
+- Run `npm run verify`.
+- Update `CHANGELOG.md` and `HANDOFF.md` every session.
+
+## Codex
+
+Codex is the second set of eyes — review and release, not primary
+implementation.
+
+Good Codex work:
+
+- Review Claude's changes for correctness, security, and consistency.
+- Catch regressions and flag risky data or auth changes.
+- Push commits, create tags, and prepare releases.
+- Keep repo hygiene (lockfiles, branch state) clean.
+
+To bring Codex up to speed, use the catch-up message in `HANDOFF.md`.
 
 ## Shared Tools
 
-- `build-graph`: codebase indexing and impact review.
-- `ui-ux-pro-max`: mobile UX direction and design systems.
-- `impeccable`: interface critique and polish.
-- Stitch MCP: design prototyping reference.
-- Magic MCP: component/design inspiration.
+- `ui-ux-pro-max` — mobile UX direction and the React Native stack rules.
+- `impeccable` — interface critique and polish.
+- Magic / 21st.dev MCP — component shaping and refinement.
+- Stitch MCP — screen prototyping reference.
+- `build-graph` — codebase indexing and impact review.
 
-## Token-Saving Pattern
+## Handoff
 
-Give agents one narrow task at a time:
-
-1. Product decision or screen goal.
-2. Exact files they may edit.
-3. What must remain unchanged.
-4. Verification command.
-5. Expected handoff summary.
+Every session ends by updating `CHANGELOG.md` and `HANDOFF.md` so the next
+contributor — human or AI — can continue cleanly. This is mandatory.

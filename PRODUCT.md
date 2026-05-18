@@ -4,46 +4,94 @@
 
 Inventory App
 
-## Problem
+## Vision
 
-Restaurants often track low inventory on a whiteboard or by memory. The person placing the weekly order has to guess what was missed, how much is needed, and whether the team is over-ordering or under-ordering.
+A universal inventory and ordering app for restaurants and food businesses — from
+a single cafe to a multi-location operator. It turns the messy, whiteboard-based
+ordering process into a fast, shared, explainable workflow that any team member
+can use and any manager can trust.
 
-This leads to missed ingredients, emergency runs, food waste, inconsistent ordering, and extra stress during prep.
+The app is built for real kitchens first: fast, bright, and one-handed. It ships
+to the Apple App Store and Google Play and grows into a paid product with
+subscription tiers.
 
-## Goal
+## The Problem
 
-Create a mobile app that lets restaurant teams quickly capture what is low, maintain simple inventory counts, and build smarter weekly order lists with suggested quantities.
+Restaurants track low inventory on a whiteboard or from memory. The person placing
+the order has to guess what was missed, how much is needed, and whether the team
+is over- or under-ordering. This causes missed ingredients, emergency runs, food
+waste, inconsistent ordering, and stress during prep.
+
+The deeper problem is adoption. Any ordering tool that is slower than the
+whiteboard will be ignored. So the team-member experience has to be *faster* than
+writing on the board — that is the bar.
 
 ## Target Users
 
-- Kitchen managers
-- Restaurant owners
-- Prep leads
-- Line cooks who notice low stock during service
-- Small teams that do not want a heavy enterprise inventory system
+- Restaurant owners running one or many locations
+- Kitchen managers and prep leads who place orders
+- Line cooks and FOH cashiers who notice low stock during service
+- Multi-location operators who need a shared picture across sites
 
-## MVP Outcome
+## How It Works
 
-A single restaurant can use one phone or tablet to:
+### Business structure
 
-- Add low-stock notes throughout the week.
-- Maintain an item list with units and par levels.
-- Review a weekly order planner.
-- See suggested order quantities.
-- Export or share the order list.
+```
+Company  →  Locations  →  Service Areas (FOH / BOH)
+```
 
-## Suggestion Logic V1
+A company owns multiple locations. Each location has front-of-house and
+back-of-house ordering tracked separately, because they buy different things from
+different vendors.
 
-Start with explainable local rules:
+### Roles
 
-- If current quantity is below par, suggest the difference.
-- Add a safety buffer for high-priority items.
-- Respect vendor pack size when configured.
-- Use recent low-stock notes as signal.
-- Let the manager override every suggestion.
+| Role | Can do | Scope |
+|------|--------|-------|
+| **Admin** | Everything: company, locations, items, people, invites | Whole company |
+| **Manager** | Build, adjust, and verify orders; manage items | Assigned locations only |
+| **Team Member** | Flag items low or out | Assigned locations only |
 
-Future logic can include sales volume, day-of-week history, weather/events, menu mix, and vendor lead times.
+Admins create a company at sign-up. They invite managers and team members, who
+join with a code and are scoped to the locations the admin grants them. Managers
+cannot change company information (locations, hours, branding).
+
+### Core surfaces
+
+1. **Stock** — the item list for a location and service area. One tap flags an
+   item *Low* or *Out*. An optional EN/ES toggle translates item names.
+2. **Order Planner** — turns the team's flags into a suggested order with
+   explainable quantities. Managers adjust and verify.
+3. **History** — past verified orders, for week-to-week comparison.
+4. **Manage** — items and par levels, locations, and team members.
+5. **Account** — profile, working location, role, preferences.
+
+## Order Suggestion Logic — V1
+
+Deterministic and explainable. Every suggestion shows its reason:
+
+```
+needed     = max(par_level - on_hand, 0)
+urgent     = high-urgency flag ? safety_buffer : 0
+suggested  = round_up_to_pack_size(needed + urgent)
+```
+
+> *"Suggested 3 cases: par is 4 cases, on-hand is 1 case, rounded up to a
+> 1-case pack."*
+
+Managers can override any suggestion. Future versions can layer in sales volume,
+day-of-week history, events, menu mix, and vendor lead times.
+
+## Platform & Sync
+
+The app runs on a Supabase backend — Postgres, authentication, row-level
+security, and realtime sync. Multiple devices in the same company stay current
+with each other automatically. Data is scoped so a user only ever sees their
+company, and managers and team members only see their assigned locations.
 
 ## Business Direction
 
-Launch as a practical mobile utility first. The app should be testable in real kitchens before paid integrations or complex team accounts are added.
+Launch as a practical mobile product, prove it in real kitchens for a full order
+cycle, then move to paid subscription tiers — sized for single restaurants up to
+multi-location operators.

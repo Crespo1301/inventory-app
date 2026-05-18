@@ -1,38 +1,46 @@
 # Security Checklist
 
-Use this as the baseline before each release or major product test.
+Baseline to review before each release or major product test.
 
-## Local Data
+## Backend & Access Control
 
-- [ ] Store app data in SQLite, not scattered async storage keys.
-- [ ] Keep schema migrations explicit and reversible where practical.
-- [ ] Do not store API keys, tokens, or private credentials in SQLite.
-- [ ] Use SecureStore for device-local sensitive settings.
-- [ ] Make export files intentional and user-initiated.
+- [ ] Row-level security is enabled on every table.
+- [ ] Policies scope data by company — no cross-company reads or writes.
+- [ ] Managers and team members are limited to their assigned locations.
+- [ ] Item, order, location, and people changes are gated by role server-side.
+- [ ] `SECURITY DEFINER` helper functions are not callable by anonymous users.
+- [ ] Client-side role checks are treated as UI only, never as the access
+      boundary.
+
+## Authentication
+
+- [ ] Email confirmation is enabled for public releases.
+- [ ] Passwords meet a minimum length.
+- [ ] Sessions persist securely on-device and refresh correctly.
+- [ ] Invitation codes are single-company scoped and expire or can be revoked.
+
+## Secrets & Config
+
+- [ ] Only the Supabase URL and publishable key ship in the client.
+- [ ] Service-role keys and other secrets never appear in the repo or client
+      bundle.
+- [ ] `.env` and `.mcp.json` contain no committed private credentials.
 
 ## Input Safety
 
-- [ ] Validate all forms with shared schemas before writing to storage.
-- [ ] Trim item names, units, vendor names, and notes.
-- [ ] Set reasonable length limits on notes and item names.
-- [ ] Treat imported files as untrusted and validate every row.
+- [ ] Validate all forms with shared schemas before writing.
+- [ ] Trim item names, units, vendor names, and notes; set length limits.
+- [ ] Treat any imported data as untrusted and validate every row.
 
 ## Privacy
 
-- [ ] Do not collect personal data unless the feature truly needs it.
-- [ ] Do not add analytics that capture ingredient lists or vendor details without explicit review.
-- [ ] Keep backups and exports clear about what data they contain.
+- [ ] Collect personal data only where a feature truly needs it.
+- [ ] Do not add analytics that capture ingredient lists or vendor details
+      without explicit review.
+- [ ] Exports clearly state what data they contain.
 
 ## Mobile Release
 
-- [ ] Confirm iOS and Android app permissions are minimal.
-- [ ] Test offline startup, offline edits, and app restart recovery.
-- [ ] Test large inventories without slow screens.
-- [ ] Confirm no secrets are committed in `.env`, `.mcp.json`, or app config.
-
-## Future Sync
-
-- [ ] Use per-restaurant workspace boundaries.
-- [ ] Add auth only when multi-device/team sync is ready.
-- [ ] Encrypt transport with HTTPS.
-- [ ] Keep server-side authorization separate from client-side UI checks.
+- [ ] iOS and Android permissions are minimal.
+- [ ] Large inventories render without slow screens.
+- [ ] App relaunch restores the session and current data correctly.

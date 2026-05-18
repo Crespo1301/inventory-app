@@ -4,66 +4,82 @@ Guidance for Codex and other coding agents working in this repository.
 
 ## Project Role
 
-`inventory-app` is a mobile-first kitchen and restaurant inventory assistant. The product helps teams capture low-stock notes throughout the week, turn those notes into an order list, and eventually suggest quantities based on usage history, par levels, vendor pack sizes, and upcoming demand.
+`inventory-app` is a mobile inventory and ordering app for restaurants and
+multi-location food businesses. It helps teams capture low-stock notes throughout
+the week, turn those notes into an order list with explainable suggested
+quantities, and verify orders before they go out — across both FOH and BOH.
 
-This is not a website template. The main deliverable is a real mobile app intended for Google Play and iOS App Store release. A marketing website can be added later, but mobile reliability comes first.
+This is a real mobile product intended for the Apple App Store and Google Play,
+growing into a paid app with subscription tiers. It is universal: nothing is
+hardcoded for any one restaurant.
 
-## Current Stack
+## Stack
 
-- Expo SDK 54
-- React Native 0.81
-- React 19
-- TypeScript
-- Expo Router
-- SQLite via `expo-sqlite`
-- Secure local secrets/preferences via `expo-secure-store`
+- Expo SDK 54, React Native 0.81, React 19
+- TypeScript, Expo Router
+- Supabase — Postgres, Auth, row-level security, realtime sync
 - Zod for runtime validation
 
 Use Node `20.19.4` or newer. The repo includes `.nvmrc`.
 
 ## Product Principles
 
-- Offline-first. A kitchen should be able to record inventory notes even with bad Wi-Fi.
-- Fast capture beats perfect forms. The first workflow should feel as quick as writing on a whiteboard.
-- Order suggestions must be explainable. Show the reason behind suggested quantities.
-- Self-dependent by default. Prefer local-first storage and file exports before paid services.
-- No vendor lock-in in the first version. Keep sync/export boundaries clean.
+- Adoption first. Flagging an item must be faster than writing on the whiteboard,
+  or the team will not use it.
+- Order suggestions must be explainable. Always show the reason behind a quantity.
+- Roles are real boundaries. Enforce access in the database (RLS), not just the UI.
+- Universal by design. Each company defines its own locations, items, par levels,
+  vendors, and team — no built-in assumptions.
+- Kitchen-speed UI: bright, flat, large touch targets, one-handed use.
 
-## Core MVP Surfaces
+## Business Structure
 
-1. **Low Stock Notes**: quick item entry, quantity, unit, station/category, urgency, optional note.
-2. **Inventory Count**: current on-hand, par level, unit, last count time.
-3. **Order Planner**: suggested order quantity, manual override, vendor grouping.
-4. **History**: previous counts, orders, missed items, over-order notes.
-5. **Settings**: restaurant profile, units, categories, vendors, export/import.
+```
+Company  →  Locations  →  Service Areas (FOH / BOH)
+```
 
-## Suggested Local Data Model
+Roles: **Admin** (whole company), **Manager** (assigned locations, ordering +
+verification), **Team Member** (assigned locations, flag low/out only).
 
-- `items`: ingredient/product master list.
-- `inventory_counts`: dated count snapshots.
-- `low_stock_notes`: whiteboard replacement entries.
-- `vendors`: supplier names and order preferences.
-- `order_lists`: weekly order sessions.
-- `order_list_lines`: item-level suggested and final quantities.
-- `usage_events`: optional future table for sales/prep usage signals.
+## Core Surfaces
 
-Keep migrations explicit and versioned. Do not scatter storage logic through screens.
+1. **Stock** — one-tap low/out capture, with an EN/ES item-name toggle.
+2. **Order Planner** — suggested quantities, manual override, manager verify.
+3. **History** — past verified orders.
+4. **Manage** — items and par levels, locations, people and invitations.
+5. **Account** — profile, working location, role, preferences.
+
+## Data Model (Supabase / Postgres)
+
+`companies`, `profiles`, `locations`, `user_locations`, `vendors`, `items`,
+`low_stock_notes`, `order_lists`, `order_list_lines`, `invitations`.
+
+Row-level security is enabled on every table and scopes data by company, role,
+and location access. Schema changes go through Supabase migrations. Keep data
+access in `src/data/` — do not scatter queries through screens.
 
 ## Agent Workflow
 
-- Read `README.md`, `PRODUCT.md`, `docs/architecture.md`, and `docs/getting-started.md` before large changes.
+- Read `README.md`, `HANDOFF.md`, `docs/architecture.md`, and
+  `docs/ios-design-guidelines.md` before large changes.
 - Use `.mcp.example.json` as the committed MCP shape. `.mcp.json` is local-only.
-- Use `code-review-graph` after meaningful code exists:
-  - `code-review-graph build --repo /home/cresp3/inventory-app`
-  - `code-review-graph status --repo /home/cresp3/inventory-app`
-- Use `ui-ux-pro-max` and `impeccable` for design passes, especially mobile workflows.
 - Keep app code TypeScript-first and mobile-accessibility aware.
-- Before handing off, run `npm run verify` when the local Node version is compatible.
+- Run `npm run verify` before handing off.
+
+## Mandatory Handoff
+
+Every working session — human or AI — must end by updating two files:
+
+1. `CHANGELOG.md` — what changed, under `[Unreleased]`.
+2. `HANDOFF.md` — refresh *Current State* and *Next Steps*.
+
+This keeps the project pick-up-able for the next contributor. Do not skip it.
 
 ## Boundaries
 
-- Do not add a paid backend unless the owner explicitly approves it.
-- Do not add authentication before the single-device MVP needs it.
-- Do not store secrets in committed files.
-- Do not build a marketing landing page before the core mobile inventory flow exists.
-- Do not assume restaurants use one universal unit system. Units must be configurable.
+- Do not weaken row-level security or move access enforcement to the client only.
+- Do not commit secrets. Only the Supabase URL and publishable key belong in the
+  client; service-role keys never enter the repo.
+- Units, categories, and vendors are configurable per company — never assume one
+  universal system.
+- Do not build a marketing landing page before the core mobile workflow is solid.

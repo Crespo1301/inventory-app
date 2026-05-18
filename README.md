@@ -1,76 +1,90 @@
 # Inventory App
 
-Mobile-first inventory and weekly ordering assistant for restaurants and kitchens.
+A mobile inventory and ordering assistant for restaurants and multi-location food
+businesses. It replaces the back-of-house whiteboard with a fast, shared,
+role-aware ordering workflow that covers both back of house (BOH) and front of
+house (FOH).
 
-The first version is intentionally local-first: fast capture, SQLite storage, and explainable ordering suggestions before any paid backend or team-sync dependency.
+## The Problem
 
-## Why This Exists
+Restaurants track low stock on a whiteboard or from memory. Whoever places the
+weekly order guesses what was missed and how much to buy. The result is emergency
+supply runs, food waste, inconsistent ordering, and stress during prep.
+Multi-location operators have it worse — every location runs its own informal
+process and there is no shared picture.
 
-Kitchen teams often write low-stock items on a whiteboard during the week. When it is time to order, the manager has to rely on memory, rough guesses, and incomplete notes. This app is meant to turn that messy workflow into:
+## What the App Does
 
-- quick low-stock capture
-- reliable inventory counts
-- weekly order planning
-- suggested order quantities
-- exportable order lists
+- **Fast capture** — any team member flags an item *Low* or *Out* in one tap. It
+  is faster than writing on the whiteboard, which is the only way a kitchen will
+  actually adopt it.
+- **Explainable suggestions** — the order planner suggests quantities from par
+  levels, vendor pack sizes, and the team's flags, and shows the reason behind
+  every number.
+- **Manager verification** — a manager reviews, adjusts, and verifies the order
+  before it goes out.
+- **Multi-location** — one company, many locations, each with its own stock and
+  order lists.
+- **FOH + BOH** — front- and back-of-house ordering are tracked as separate
+  service areas.
+- **Bilingual** — an EN/ES translation toggle on item names for kitchens where
+  BOH staff speak Spanish.
+
+## Business Structure
+
+```
+Company  →  Locations  →  Service Areas (FOH / BOH)
+```
+
+## Roles
+
+- **Admin** — the business owner. Manages the company, locations, items, and
+  people; invites other admins, managers, and team members.
+- **Manager** — runs ordering for the locations granted to them. Builds and
+  verifies orders. Scoped to assigned locations; cannot change company settings.
+- **Team Member** — line cooks and cashiers. Flags items low or out. The simplest
+  possible role, intentionally.
 
 ## Stack
 
-- Expo SDK 54
-- React Native
-- TypeScript
-- Expo Router
-- SQLite with `expo-sqlite`
-- Secure device storage with `expo-secure-store`
-- Zod validation
+- Expo SDK 54, React Native, TypeScript, Expo Router
+- Supabase — Postgres, Auth, row-level security, realtime sync
+- Zod for runtime validation
 
 ## Quick Start
 
 ```bash
 cd /home/cresp3/inventory-app
-nvm install
 nvm use
 npm install
-npm start
+npm run start:tunnel
 ```
 
-Run checks:
+Use `start:tunnel` so a physical device can reach the dev server (required on
+WSL2 and any network where the phone and computer are not directly routable).
+Scan the QR code with the iPhone Camera or Android Expo Go.
 
-```bash
-npm run verify
-```
+See [Getting Started](./docs/getting-started.md) for the one-time Supabase setup
+step.
 
-AI/MCP sanity check:
+## Product Direction
 
-```bash
-npm run mcp:doctor
-```
-
-## Development Notes
-
-- Use Node `20.19.4` or newer.
-- Keep SQLite as the app source of truth for the MVP.
-- Keep screens simple enough for one-handed kitchen use.
-- Build mobile first. Web is useful for rough checks, but it is not the primary target.
-- Do not add authentication, paid cloud services, or sync until the local single-device workflow proves itself.
+The app is built to ship to the Apple App Store and Google Play, and to grow into
+a paid product with subscription tiers for single restaurants up to multi-location
+operators. It is universal by design — nothing is hardcoded for any one
+restaurant; each company defines its own locations, items, par levels, and team.
 
 ## Documentation
 
+- [Handoff](./HANDOFF.md) — current state and next steps; **start here**
+- [Changelog](./CHANGELOG.md)
 - [Product Brief](./PRODUCT.md)
 - [Architecture](./docs/architecture.md)
 - [Getting Started](./docs/getting-started.md)
+- [Testing](./docs/testing.md)
+- [iOS Design Guidelines](./docs/ios-design-guidelines.md)
+- [App Store Requirements](./docs/app-store-requirements.md)
+- [Launch Roadmap](./docs/launch-roadmap.md)
 - [Security Checklist](./SECURITY-CHECKLIST.md)
 - [AI Workflow](./AI-WORKFLOW.md)
 - [Agent Instructions](./AGENTS.md)
-
-## First Milestone
-
-The first useful test build should include:
-
-1. low-stock note capture
-2. item list with units and par levels
-3. basic inventory count screen
-4. order planner with explainable suggestions
-5. export/share order list
-
-After that, test it in a real kitchen for a full order cycle before adding heavier features.
