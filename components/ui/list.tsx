@@ -1,9 +1,9 @@
 import { Children, Fragment, type ReactNode } from 'react';
 import { View, type ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { colors, radius, spacing, touchTarget } from '@/constants/design';
 import { AppText } from '@/components/ui/text';
+import { Icon, type IconName } from '@/components/ui/icon';
 import { PressableScale } from '@/components/ui/pressable-scale';
 
 /**
@@ -60,7 +60,7 @@ export function ListSection({ title, footer, separatorInset = spacing.lg, childr
 }
 
 export type ListRowProps = {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   /** Background of the leading icon tile. */
   iconBg?: string;
   iconColor?: string;
@@ -112,7 +112,7 @@ export function ListRow({
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <Ionicons name={icon} size={18} color={destructive ? colors.urgentHigh : iconColor} />
+          <Icon name={icon} size={18} color={destructive ? colors.urgentHigh : iconColor} />
         </View>
       ) : null}
 
@@ -133,7 +133,7 @@ export function ListRow({
         </AppText>
       ) : null)}
 
-      {onPress ? <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} /> : null}
+      {onPress ? <Icon name="chevron-forward" size={18} color={colors.textSubtle} /> : null}
     </PressableScale>
   );
 }

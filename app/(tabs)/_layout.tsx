@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { colors, typography } from '@/constants/design';
+import { Icon } from '@/components/ui/icon';
+import { SkeletonTabScreen } from '@/components/ui/skeleton';
 import { can } from '@/src/domain/permissions';
 import { useApp } from '@/src/store/app-store';
+import { SyncBanner } from '@/components/ui/sync-banner';
 
 /** Tab button that fires a light haptic on press — kitchen-friendly feedback. */
 function HapticTabButton(props: any) {
@@ -25,14 +27,13 @@ export default function TabLayout() {
   const showOrders = can(currentRole, 'viewOrders');
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.canvas }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return <SkeletonTabScreen />;
   }
 
   return (
+    <View style={{ flex: 1 }}>
+      {/* Offline / unsynced indicator — sits above the tab screens. */}
+      <SyncBanner />
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -52,7 +53,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Stock',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cube" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="cube" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -60,7 +61,7 @@ export default function TabLayout() {
         options={{
           title: 'Orders',
           href: showOrders ? '/orders' : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="clipboard" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="clipboard" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -68,16 +69,17 @@ export default function TabLayout() {
         options={{
           title: 'History',
           href: showOrders ? '/history' : null,
-          tabBarIcon: ({ color, size }) => <Ionicons name="time" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="time" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
           title: 'Account',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="person-circle" size={size} color={color} />,
         }}
       />
     </Tabs>
+    </View>
   );
 }

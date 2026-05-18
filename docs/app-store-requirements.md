@@ -14,21 +14,25 @@ Play. Treat this as a living checklist — update it as items are completed.
 
 The app uses Expo, so builds go through **EAS Build** and **EAS Submit**:
 
-- [ ] `eas.json` configured with `development`, `preview`, and `production`
+- [x] `eas.json` configured with `development`, `preview`, and `production`
       profiles.
-- [ ] iOS bundle identifier set (e.g. `com.csolutions.inventoryapp`) in
+- [x] iOS bundle identifier set (`com.csolutions.inventoryapp`) in
       `app.json` → `ios.bundleIdentifier`.
-- [ ] Android `package` set in `app.json` → `android.package`.
-- [ ] App version + build number strategy (`expo-build-properties` /
-      `autoIncrement`).
+- [x] Android `package` set in `app.json` → `android.package`.
+- [x] App version + build number strategy — `eas.json` uses
+      `appVersionSource: remote` with `autoIncrement` on production.
 - [ ] First builds go to **TestFlight** (iOS) and **internal testing** (Android)
       before any public release.
 
 ## 3. Privacy — the most common rejection area
 
-- [ ] **Privacy policy URL** — publicly hosted, linked in App Store Connect and
-      reachable in-app. Must describe what data is collected (account email,
-      restaurant/inventory data) and that it is stored on Supabase.
+- [x] **Privacy policy draft** — written at `docs/privacy-policy.md`. Covers
+      collected data (account email, restaurant/inventory data), Supabase as
+      infrastructure processor, RLS security, and in-app account deletion.
+- [ ] **Privacy policy URL** — the draft in `docs/privacy-policy.md` must be
+      publicly hosted (e.g. on the support website or a plain HTTPS page) before
+      submission. Paste the live URL into App Store Connect and add a reachable
+      in-app link (Account screen or Settings → Privacy Policy).
 - [ ] **App Privacy details** ("nutrition label") in App Store Connect — declare
       collected data: *Contact Info → email*, *User Content* (inventory/order
       data linked to the account). We do **not** track users or run ads.
@@ -38,14 +42,11 @@ The app uses Expo, so builds go through **EAS Build** and **EAS Submit**:
 - [ ] **App Tracking Transparency** — not required; the app does no cross-app
       tracking. Do not add tracking SDKs without revisiting this.
 
-## 4. Account Requirements — action needed
+## 4. Account Requirements
 
-- [ ] **In-app account deletion is mandatory.** Any app that supports account
-      creation must let the user delete their account *from inside the app*, and
-      the path must be easy to find. **The app does not have this yet — it must
-      be built before submission.** (Account screen → "Delete account", which
-      removes the profile and signs out; for an admin who owns a company, decide
-      whether deletion also removes the company.)
+- [x] **In-app account deletion** — done. Account screen → "Delete Account"
+      removes the profile and auth user; when the last member of a company
+      leaves, the company and all its data are removed too.
 - [ ] **Sign in with Apple** — only required if we offer third-party social
       login. We use email + password only, so it is **not required**. If a social
       login is ever added, Sign in with Apple must be added alongside it.
@@ -77,11 +78,12 @@ The app uses Expo, so builds go through **EAS Build** and **EAS Submit**:
 | Real backend with auth | ✅ Supabase |
 | Data isolation / security | ✅ Row-level security |
 | No crashes in core flows | ✅ (continue testing) |
-| In-app account deletion | ❌ **must build** |
-| Privacy policy | ❌ must write + host |
+| In-app account deletion | ✅ done |
+| Privacy policy draft | ✅ `docs/privacy-policy.md` |
+| Privacy policy hosted URL | ❌ must host + link in app and App Store Connect |
 | App Privacy details | ❌ fill in App Store Connect |
 | Icon + screenshots | ❌ produce from real screens |
-| EAS build config | ❌ set up `eas.json` + bundle IDs |
+| EAS build config | ✅ `eas.json` + bundle IDs |
 | Demo account for review | ❌ create before submitting |
 
 ## Sources

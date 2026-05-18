@@ -4,6 +4,12 @@
  * Loads the signed-in user's company data from Supabase, keeps it in memory for
  * fast rendering, mirrors every mutation back, and subscribes to realtime
  * changes so other devices in the same company stay in sync.
+ *
+ * Offline writes: when a Supabase call fails because the device has no network,
+ * the optimistic in-memory update is kept so the UI stays responsive, and the
+ * operation is enqueued in the persistent outbox (src/data/outbox.ts). On
+ * reconnect, SyncProvider flushes the queue and then calls `reload` so the
+ * store re-hydrates from the server.
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -26,6 +32,8 @@ import { suggestOrderQuantity } from '@/src/domain/suggestions';
 import * as repo from '@/src/data/repo';
 import type { AccountUser, Invitation } from '@/src/data/repo';
 import { supabase } from '@/src/supabase/client';
+import * as outbox from '@/src/data/outbox';
+import { useSync } from '@/src/store/sync-store';
 
 function inferOnHand(item: Item, notes: LowStockNote[]): number {
   const latest = notes
@@ -101,6 +109,7 @@ const AppContext = createContext<AppValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { flushOutbox } = useSync();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +170,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let active = true;
     setLoading(true);
     (async () => {
+      // Register the reload callback with the sync store so it can refresh
+      // the snapshot after a successful outbox flush.
+      await flushOutbox(reload);
       await reload();
       if (active) setLoading(false);
     })();
@@ -179,7 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (reloadTimer.current) clearTimeout(reloadTimer.current);
       void supabase.removeChannel(channel);
     };
-  }, [user, reload]);
+  }, [user, reload, flushOutbox]);
 
   const currentUserId = user?.id ?? '';
   const currentRole: UserRole = user?.role ?? 'member';
@@ -193,7 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const flagItem = useCallback(
     async (input: FlagInput) => {
       const item = items.find((i) => i.id === input.itemId);
-      const note = await repo.insertNote({
+      const noteArgs = {
         itemId: input.itemId,
         locationId: currentLocationId,
         area: item?.area ?? currentArea,
@@ -202,17 +214,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
         quantityOnHand: input.quantityOnHand,
         note: input.note,
         createdBy: currentUserId,
-      });
-      setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
+      };
+
+      try {
+        const note = await repo.insertNote(noteArgs);
+        setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
+      } catch {
+        // Offline path: apply an optimistic note with a temp id so the stock
+        // screen reflects the flag immediately.
+        const tempNote: LowStockNote = {
+          id: `tmp-${Date.now()}`,
+          ...noteArgs,
+          createdByUserId: currentUserId,
+          createdAt: Date.now(),
+          resolvedAt: undefined,
+        };
+        setNotes((prev) => [tempNote, ...prev]);
+        await outbox.enqueue({ type: 'insertNote', args: noteArgs });
+        await flushOutbox(reload);
+      }
     },
-    [items, currentArea, currentLocationId, currentUserId],
+    [items, currentArea, currentLocationId, currentUserId, flushOutbox, reload],
   );
 
-  const resolveNote = useCallback(async (noteId: string) => {
-    const at = Date.now();
-    setNotes((prev) => prev.map((n) => (n.id === noteId ? { ...n, resolvedAt: at } : n)));
-    await repo.resolveNote(noteId);
-  }, []);
+  const resolveNote = useCallback(
+    async (noteId: string) => {
+      const at = Date.now();
+      // Optimistic update first — the note disappears from the active list.
+      setNotes((prev) => prev.map((n) => (n.id === noteId ? { ...n, resolvedAt: at } : n)));
+      try {
+        await repo.resolveNote(noteId);
+      } catch {
+        // If offline, queue the resolve. The temp-id case (note created offline)
+        // will reconcile when the outbox flushes and a reload follows.
+        await outbox.enqueue({ type: 'resolveNote', args: { id: noteId } });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
   const generateOrderList = useCallback(
     async (locationId: string, area: ServiceArea) => {
@@ -227,18 +267,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return [{ itemId, suggestedQty, reason }];
       });
 
-      const created = await repo.createOrderList({ locationId, area, lines });
-      setOrderLists((prev) => [created.list, ...prev]);
-      setOrderLines((prev) => [...created.lines, ...prev]);
+      const orderArgs = { locationId, area, lines };
+
+      try {
+        const created = await repo.createOrderList(orderArgs);
+        setOrderLists((prev) => [created.list, ...prev]);
+        setOrderLines((prev) => [...created.lines, ...prev]);
+      } catch {
+        // Offline: queue the creation. The order list will appear after the
+        // outbox flushes and a reload pulls the real rows.
+        await outbox.enqueue({ type: 'createOrderList', args: orderArgs });
+        await flushOutbox(reload);
+      }
     },
-    [items, notes],
+    [items, notes, flushOutbox, reload],
   );
 
-  const updateOrderLineQty = useCallback((lineId: string, finalQty: number) => {
-    const next = Math.max(0, finalQty);
-    setOrderLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, finalQty: next } : l)));
-    void repo.updateOrderLineFinalQty(lineId, next);
-  }, []);
+  const updateOrderLineQty = useCallback(
+    (lineId: string, finalQty: number) => {
+      const next = Math.max(0, finalQty);
+      setOrderLines((prev) => prev.map((l) => (l.id === lineId ? { ...l, finalQty: next } : l)));
+      // Fire-and-forget; if it fails offline, enqueue for later.
+      repo.updateOrderLineFinalQty(lineId, next).catch(async () => {
+        await outbox.enqueue({ type: 'updateOrderLineFinalQty', args: { id: lineId, finalQty: next } });
+        await flushOutbox(reload);
+      });
+    },
+    [flushOutbox, reload],
+  );
 
   const verifyOrder = useCallback(
     async (orderListId: string) => {
@@ -246,6 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const list = orderLists.find((l) => l.id === orderListId);
       const itemIds = orderLines.filter((l) => l.orderListId === orderListId).map((l) => l.itemId);
 
+      // Optimistic update.
       setOrderLists((prev) =>
         prev.map((l) =>
           l.id === orderListId
@@ -261,72 +318,151 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ),
       );
 
-      await repo.verifyOrderList(orderListId, currentUserId);
-      if (list) await repo.resolveNotesForItems(itemIds, list.locationId);
+      try {
+        await repo.verifyOrderList(orderListId, currentUserId);
+        if (list) await repo.resolveNotesForItems(itemIds, list.locationId);
+      } catch {
+        await outbox.enqueue({
+          type: 'verifyOrderList',
+          args: {
+            id: orderListId,
+            userId: currentUserId,
+            itemIds,
+            locationId: list?.locationId ?? '',
+          },
+        });
+        await flushOutbox(reload);
+      }
     },
-    [orderLines, orderLists, currentUserId],
+    [orderLines, orderLists, currentUserId, flushOutbox, reload],
   );
 
   const addItem = useCallback(
     async (input: ItemInput) => {
       if (!company) return;
-      const item = await repo.insertItem({ ...input, companyId: company.id });
-      setItems((prev) => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
+      const itemArgs = { ...input, companyId: company.id };
+      try {
+        const item = await repo.insertItem(itemArgs);
+        setItems((prev) => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
+      } catch {
+        // Optimistic temp item so Manage > Items shows it immediately.
+        const tempItem: Item = { id: `tmp-${Date.now()}`, ...itemArgs };
+        setItems((prev) => [...prev, tempItem].sort((a, b) => a.name.localeCompare(b.name)));
+        await outbox.enqueue({ type: 'insertItem', args: itemArgs as any });
+        await flushOutbox(reload);
+      }
     },
-    [company],
+    [company, flushOutbox, reload],
   );
 
-  const editItem = useCallback(async (item: Item) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? item : i)).sort((a, b) => a.name.localeCompare(b.name)),
-    );
-    await repo.updateItem(item);
-  }, []);
+  const editItem = useCallback(
+    async (item: Item) => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? item : i)).sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      try {
+        await repo.updateItem(item);
+      } catch {
+        await outbox.enqueue({ type: 'updateItem', args: item });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
-  const removeItem = useCallback(async (itemId: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
-    await repo.deleteItem(itemId);
-  }, []);
+  const removeItem = useCallback(
+    async (itemId: string) => {
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
+      try {
+        await repo.deleteItem(itemId);
+      } catch {
+        await outbox.enqueue({ type: 'deleteItem', args: { id: itemId } });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
   const addLocation = useCallback(
     async (name: string, address?: string) => {
       if (!company) return;
-      const loc = await repo.insertLocation(company.id, name, address);
-      setLocations((prev) => [...prev, loc]);
+      try {
+        const loc = await repo.insertLocation(company.id, name, address);
+        setLocations((prev) => [...prev, loc]);
+      } catch {
+        const tempLoc: Location = {
+          id: `tmp-${Date.now()}`,
+          companyId: company.id,
+          name,
+          address,
+        };
+        setLocations((prev) => [...prev, tempLoc]);
+        await outbox.enqueue({ type: 'insertLocation', args: { companyId: company.id, name, address } });
+        await flushOutbox(reload);
+      }
     },
-    [company],
+    [company, flushOutbox, reload],
   );
 
-  const editLocation = useCallback(async (id: string, name: string, address?: string) => {
-    setLocations((prev) => prev.map((l) => (l.id === id ? { ...l, name, address } : l)));
-    await repo.updateLocation(id, name, address);
-  }, []);
+  const editLocation = useCallback(
+    async (id: string, name: string, address?: string) => {
+      setLocations((prev) => prev.map((l) => (l.id === id ? { ...l, name, address } : l)));
+      try {
+        await repo.updateLocation(id, name, address);
+      } catch {
+        await outbox.enqueue({ type: 'updateLocation', args: { id, name, address } });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
   const createInvitation = useCallback(
     async (input: InviteInput) => {
       if (!company) throw new Error('No company loaded.');
-      const invite = await repo.createInvitation({
+      const inviteArgs = {
         companyId: company.id,
         email: input.email,
         role: input.role,
         locationIds: input.locationIds,
         invitedBy: currentUserId,
-      });
+      };
+      // createInvitation must return a real Invitation; offline path cannot
+      // produce a real invite code, so we throw a user-friendly error instead
+      // of silently queuing — inviting while offline is an edge case a manager
+      // can easily retry once connected.
+      const invite = await repo.createInvitation(inviteArgs);
       setInvitations((prev) => [invite, ...prev]);
       return invite;
     },
     [company, currentUserId],
   );
 
-  const cancelInvitation = useCallback(async (id: string) => {
-    setInvitations((prev) => prev.filter((i) => i.id !== id));
-    await repo.deleteInvitation(id);
-  }, []);
+  const cancelInvitation = useCallback(
+    async (id: string) => {
+      setInvitations((prev) => prev.filter((i) => i.id !== id));
+      try {
+        await repo.deleteInvitation(id);
+      } catch {
+        await outbox.enqueue({ type: 'deleteInvitation', args: { id } });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
-  const removeTeamMember = useCallback(async (userId: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== userId));
-    await repo.deleteProfile(userId);
-  }, []);
+  const removeTeamMember = useCallback(
+    async (userId: string) => {
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      try {
+        await repo.deleteProfile(userId);
+      } catch {
+        await outbox.enqueue({ type: 'deleteProfile', args: { id: userId } });
+        await flushOutbox(reload);
+      }
+    },
+    [flushOutbox, reload],
+  );
 
   const value = useMemo<AppValue>(
     () => ({

@@ -14,6 +14,15 @@ off. See [HANDOFF.md](./HANDOFF.md).
   profiles, iOS `bundleIdentifier` and Android `package`
   (`com.csolutions.inventoryapp`), and a build/TestFlight guide
   (`docs/eas-build.md`).
+- Offline write queue: connectivity detection (`@react-native-community/netinfo`)
+  and a persistent outbox (`src/data/outbox.ts`). Mutations that fail offline
+  keep their optimistic state, queue, and replay on reconnect; a `SyncBanner`
+  shows offline / unsynced / syncing state.
+- Native SF Symbols on iOS via a cross-platform `Icon` component (used by the
+  tab bar and list rows); Ionicons remain the Android/web fallback.
+- Loading skeletons (`components/ui/skeleton.tsx`) replace plain spinners on
+  cold start and tab load.
+- Privacy policy draft (`docs/privacy-policy.md`), ready to host.
 
 ### Changed
 

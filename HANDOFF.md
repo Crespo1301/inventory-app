@@ -32,7 +32,10 @@ Released baseline: `v0.1.0` on 2026-05-17.
 - Supabase: Postgres + row-level security + realtime sync across devices.
 - In-app account deletion (Account screen) — meets the App Store requirement.
 - iOS-native design pass: collapsing large titles, inset grouped lists, modal
-  sheets with grabbers. Light-mode, flat, no gradients/glass.
+  sheets with grabbers, native SF Symbols on iOS, loading skeletons.
+- Offline write queue: flags/orders made offline queue locally and replay on
+  reconnect; a banner shows offline/unsynced state.
+- EAS build config committed; privacy policy drafted (`docs/privacy-policy.md`).
 
 **Architecture map:**
 
@@ -63,26 +66,26 @@ Released baseline: `v0.1.0` on 2026-05-17.
    `eas login` → `eas init` → `eas build --profile production --platform ios`
    → `eas submit` to reach TestFlight. Needs an Expo account and the Apple
    Developer Program.
-2. **Offline write queue** — the app is online-first; flagging offline fails.
-   Queue writes locally and replay on reconnect.
-3. **Privacy policy + App Store Connect** — host a policy, fill App Privacy
-   details, prepare icon + 6.9" screenshots, create a demo account for review.
+2. **Host the privacy policy** — `docs/privacy-policy.md` is drafted; fill its
+   placeholders (`[Effective date]`, `[Company name]`, `[support email]`), host
+   it at an HTTPS URL, link it in App Store Connect and from the Account screen.
+3. **App Store Connect prep** — App Privacy details, app icon, 6.9" screenshots,
+   a confirmed demo account for review.
 4. **Invite email delivery** — currently a shareable code; add an Edge Function
    to email invitations.
-5. **Design polish (minor)** — SF Symbols on iOS and loading skeletons; the
-   structural iOS pass is done, these are the remaining `ios-design-guidelines`
-   items.
-6. **Subscription tiers** — gating and billing, after real-kitchen testing.
+5. **Subscription tiers** — gating and billing, after real-kitchen testing.
 
-Done: in-app account deletion (App Store blocker) and the iOS-native design pass
-(large titles, grouped lists, sheets).
+Done: in-app account deletion, the iOS-native design pass (large titles, grouped
+lists, sheets, SF Symbols, skeletons), the offline write queue, EAS build config,
+and the privacy policy draft.
 
 See `docs/launch-roadmap.md` for the phased plan and `docs/app-store-requirements.md`
 for the full submission checklist.
 
 ## Known Limitations
 
-- Online-first — no offline capture yet.
+- Offline capture works via the outbox; `createInvitation` is intentionally
+  online-only (an invite code needs a real server row).
 - Invite delivery is a code to share manually, not an email.
 - "Confirm email" is expected OFF during testing.
 
