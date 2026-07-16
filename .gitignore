@@ -46,3 +46,8 @@ app-example
 
 # AI agent worktrees
 .claude/worktrees/
+
+# Local AI tooling
+.agents/
+.claude/
+.code-review-graph/
