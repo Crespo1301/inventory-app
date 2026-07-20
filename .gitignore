@@ -52,3 +52,6 @@ app-example
 .claude/
 .code-review-graph/
 .codex/
+
+# Local browser QA screenshots
+.visual-checks/

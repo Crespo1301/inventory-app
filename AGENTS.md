@@ -83,3 +83,7 @@ This keeps the project pick-up-able for the next contributor. Do not skip it.
 - Units, categories, and vendors are configurable per company — never assume one
   universal system.
 - Do not build a marketing landing page before the core mobile workflow is solid.
+
+## Visual QA
+
+Use the workspace runner at `/home/cresp3/scripts/visual-check.sh` after any layout, responsive, spacing, animation, or visual-polish change. Start the local dev server, capture mobile and desktop screenshots into `.visual-checks/`, and inspect the rendered pixels before calling the work done. See `VISUAL-QA.md`.

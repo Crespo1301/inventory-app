@@ -30,3 +30,7 @@ Design bias:
 - Large touch targets, clear item names, quick quantity edits.
 - One-handed use where possible.
 - Clear sync and save state — the team should always know an action landed.
+
+## Visual QA
+
+Use the workspace runner at `/home/cresp3/scripts/visual-check.sh` after any layout, responsive, spacing, animation, or visual-polish change. Start the local dev server, capture mobile and desktop screenshots into `.visual-checks/`, and inspect the rendered pixels before calling the work done. See `VISUAL-QA.md`.
