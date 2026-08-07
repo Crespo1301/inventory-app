@@ -2,7 +2,7 @@ import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { colors, radius, spacing } from '@/constants/design';
+import { colors, radius, spacing, touchTarget } from '@/constants/design';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -76,9 +76,16 @@ export default function ManagePeopleScreen() {
                       {!isSelf ? (
                         <PressableScale
                           accessibilityLabel={`Remove ${u.name}`}
+                          accessibilityRole="button"
+                          hitSlop={spacing.sm}
                           onPress={() => removeMember(u.id, u.name)}
-                          style={{ padding: 4 }}>
-                          <Ionicons name="trash-outline" size={18} color={colors.urgentHigh} />
+                          style={{
+                            width: touchTarget.min,
+                            height: touchTarget.min,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                          <Ionicons name="trash-outline" size={20} color={colors.urgentHigh} />
                         </PressableScale>
                       ) : null}
                     </View>
@@ -108,9 +115,16 @@ export default function ManagePeopleScreen() {
                     </View>
                     <PressableScale
                       accessibilityLabel={`Cancel invitation for ${inv.email}`}
+                      accessibilityRole="button"
+                      hitSlop={spacing.sm}
                       onPress={() => cancelInvite(inv.id, inv.email)}
-                      style={{ padding: 4 }}>
-                      <Ionicons name="close-circle-outline" size={20} color={colors.urgentHigh} />
+                      style={{
+                        width: touchTarget.min,
+                        height: touchTarget.min,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                      <Ionicons name="close-circle-outline" size={22} color={colors.urgentHigh} />
                     </PressableScale>
                   </View>
                 </Card>

@@ -1,8 +1,9 @@
-import { Alert, Switch, View } from 'react-native';
+import { Alert, Linking, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { colors, radius, spacing } from '@/constants/design';
+import { colors, radius, spacing, touchTarget } from '@/constants/design';
+import { PRIVACY_POLICY_URL, SUPPORT_EMAIL } from '@/constants/app-meta';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,7 +13,9 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { AppText } from '@/components/ui/text';
 import type { UserRole } from '@/src/domain';
 import { can, roleLabel, visibleLocationIds } from '@/src/domain/permissions';
+import { planFor } from '@/src/domain/billing';
 import { useAuth } from '@/src/auth/auth-store';
+import { useOnboarding } from '@/src/onboarding/onboarding-store';
 import { useApp } from '@/src/store/app-store';
 
 const roleTone: Record<UserRole, BadgeTone> = { admin: 'info', manager: 'low', member: 'medium' };
@@ -23,6 +26,7 @@ const ICON_INSET = spacing.lg + 30 + spacing.md;
 export default function AccountScreen() {
   const router = useRouter();
   const { logOut, deleteAccount } = useAuth();
+  const { restart: replayTutorial } = useOnboarding();
   const app = useApp();
 
   const membership = app.memberships.find((m) => m.userId === app.currentUserId);
@@ -130,6 +134,26 @@ export default function AccountScreen() {
           />
         </ListSection>
 
+        {/* About */}
+        <ListSection title="ABOUT" separatorInset={ICON_INSET}>
+          <ListRow
+            icon="information-circle"
+            label="How the app works"
+            sublabel="Replay the welcome tutorial"
+            onPress={replayTutorial}
+          />
+          <ListRow
+            icon="shield-checkmark"
+            label="Privacy Policy"
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+          />
+          <ListRow
+            icon="mail"
+            label="Contact Support"
+            onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
+          />
+        </ListSection>
+
         {/* Management */}
         {can(app.currentRole, 'manageItems') ? (
           <ListSection
@@ -143,6 +167,14 @@ export default function AccountScreen() {
             {can(app.currentRole, 'managePeople') ? (
               <ListRow icon="people" label="Team & roles" onPress={() => router.push('/manage/people')} />
             ) : null}
+            {can(app.currentRole, 'manageCompany') ? (
+              <ListRow
+                icon="card"
+                label="Plan & billing"
+                value={planFor(app.company).name}
+                onPress={() => router.push('/manage/plan')}
+              />
+            ) : null}
           </ListSection>
         ) : null}
 
@@ -152,7 +184,12 @@ export default function AccountScreen() {
           accessibilityRole="button"
           accessibilityLabel="Delete account"
           onPress={confirmDelete}
-          style={{ alignItems: 'center', paddingVertical: spacing.sm }}>
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: touchTarget.min,
+            paddingVertical: spacing.sm,
+          }}>
           <AppText variant="label" tone="danger">
             Delete Account
           </AppText>
