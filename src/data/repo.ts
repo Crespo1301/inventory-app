@@ -171,7 +171,7 @@ export async function loadCompanySnapshot(): Promise<CompanySnapshot> {
 
   const c = unwrap(company);
   return {
-    company: { id: c.id, name: c.name, createdByUserId: c.created_by },
+    company: { id: c.id, name: c.name, createdByUserId: c.created_by, plan: c.plan ?? undefined },
     locations: unwrap(locations).map(mapLocation),
     users: unwrap(users).map(mapProfile),
     vendors: unwrap(vendors).map(mapVendor),

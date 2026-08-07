@@ -42,6 +42,13 @@ export default function ManageLayout() {
         name="invite-form"
         options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }}
       />
+      <Stack.Screen
+        name="plan"
+        options={{
+          title: 'Plan & Billing',
+          headerLeft: () => <StackCloseButton fallbackHref="/account" />,
+        }}
+      />
     </Stack>
   );
 }

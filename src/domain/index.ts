@@ -26,6 +26,11 @@ export type Company = {
   name: string;
   /** Admin who created the company — approves later admin sign-ups. */
   createdByUserId: string;
+  /**
+   * Subscription tier. Optional until the `companies.plan` column ships;
+   * `planFor()` in `src/domain/billing.ts` defaults an absent value to Starter.
+   */
+  plan?: 'starter' | 'pro' | 'enterprise';
 };
 
 export type Location = {
