@@ -134,13 +134,17 @@ full restructured plan.
       1–2 weeks review) and Google org verification ($25 one-time, 1–7 days
       doc review) in parallel.
 -0.5. **Marketing site** — scaffolded 2026-08 at `/home/cresp3/kitchen-inventory-site`
-   (Next.js 16 / Tailwind 4, separate repo, not yet pushed to GitHub or
-   deployed). Deploys at the bare product domain; this app's own Expo web
-   export deploys at the `app.` subdomain. Needed for: the support/marketing
-   URLs both stores require, and the live business website Google checks via
-   Search Console during org verification. Remaining: register the real
-   domain, fill in the `TODO`s in that repo's `src/data/site.ts`, push to
-   GitHub, deploy to Vercel.
+   (Next.js 16 / Tailwind 4), pushed to GitHub
+   (https://github.com/Crespo1301/kitchen-inventory-site) and live on Vercel
+   at https://kitchen-inventory-site.vercel.app. Deploys at the bare product
+   domain once registered; this app's own Expo web export deploys at the
+   `app.` subdomain. Needed for: the support/marketing URLs both stores
+   require, and the live business website Google checks via Search Console
+   during org verification. Remaining: connect the Vercel project to the
+   GitHub repo (Vercel dashboard → Settings → Git) so pushes auto-deploy —
+   today's deploy was a one-off direct upload, not git-linked — then
+   register the real domain, fill in the `TODO`s in that repo's
+   `src/data/site.ts`, and attach the domain in Vercel.
 0. **Get the app on one real restaurant device — free, no Apple Developer.**
    The cheapest live-in-a-kitchen path that does **not** require us to run a
    dev server every shift is an **EAS Android internal build**:
