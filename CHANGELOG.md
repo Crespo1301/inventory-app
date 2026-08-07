@@ -8,6 +8,17 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
+### Docs
+
+- Restructured `docs/launch-roadmap.md` and `docs/app-store-requirements.md`:
+  Android is now equal priority with iOS (was "secondary"), added Phase 0
+  (CSolutions entity formation — LLC/EIN/D-U-N-S — blocking Organization
+  enrollment on both stores), Phase 4 (Expo web export at `app.<domain>`),
+  and Phase 5 (standalone marketing-site repo at the bare domain). Updated
+  `AGENTS.md`'s marketing-page boundary to explicitly authorize the
+  standalone marketing site repo, since Apple/Google org verification both
+  require a live business website.
+
 ### Added
 
 - A first-run tutorial (`app/onboarding.tsx`) — a 5-screen welcome walkthrough

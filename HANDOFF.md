@@ -21,6 +21,15 @@ A working, multi-role restaurant inventory & ordering app on a Supabase backend.
 `npm run verify` (lint + typecheck) passes; the iOS bundle exports clean.
 Released baseline: `v0.2.0` on 2026-05-18.
 
+**Strategic direction as of 2026-08**: Android is now equal priority with
+iOS (was secondary); the product is also going to the web via Expo's static
+web export (`app.<domain>`), and a standalone marketing site repo
+(`/home/cresp3/kitchen-inventory-site`, at the bare `<domain>`) has been
+scaffolded. Both app stores will be enrolled as CSolutions Organization
+accounts, which is currently blocked on CSolutions becoming a formed legal
+entity — see Next Steps item -1 below. See `docs/launch-roadmap.md` for the
+full restructured plan.
+
 **Working end to end:**
 
 - Signup creates a company + admin; login; join-a-company by invite code.
@@ -102,6 +111,36 @@ Released baseline: `v0.2.0` on 2026-05-18.
 
 ## Next Steps (priority order)
 
+-1. **CSolutions entity formation — start immediately, not a hard deadline.**
+   Both Apple Developer Program and Google Play Console will be enrolled as
+   **Organization (CSolutions)**, not Individual — matches the existing
+   `com.csolutions.inventoryapp` bundle ID and skips Google's 12-tester/
+   14-day closed-testing gate. This is blocked on CSolutions being a real
+   legal entity. Chain, tracked in
+   `/home/cresp3/Portfolio/business/compliance-register.csv`:
+   1. Decide the exact legal name (must match identically across WA SOS,
+      D&B, IRS, and both store filings — name mismatch is the most common
+      rejection cause), registered agent, and management structure.
+   2. File the WA Certificate of Formation online ($180 + $20 processing,
+      ~5 business days standard, or +$100 for ~3-business-day expedited).
+   3. Get the EIN same-day from IRS.gov, free, once the LLC is approved.
+   4. Request the D-U-N-S number from Dun & Bradstreet immediately after —
+      free, but this is the long pole: budget realistically for several
+      weeks, not days.
+   5. In parallel (no dependency): verify the marketing-site domain in
+      Google Search Console once it's live (see item -0.5 below), and set
+      up an org-domain email for the Apple account.
+   6. Once the D-U-N-S number lands, submit Apple org enrollment ($99/yr,
+      1–2 weeks review) and Google org verification ($25 one-time, 1–7 days
+      doc review) in parallel.
+-0.5. **Marketing site** — scaffolded 2026-08 at `/home/cresp3/kitchen-inventory-site`
+   (Next.js 16 / Tailwind 4, separate repo, not yet pushed to GitHub or
+   deployed). Deploys at the bare product domain; this app's own Expo web
+   export deploys at the `app.` subdomain. Needed for: the support/marketing
+   URLs both stores require, and the live business website Google checks via
+   Search Console during org verification. Remaining: register the real
+   domain, fill in the `TODO`s in that repo's `src/data/site.ts`, push to
+   GitHub, deploy to Vercel.
 0. **Get the app on one real restaurant device — free, no Apple Developer.**
    The cheapest live-in-a-kitchen path that does **not** require us to run a
    dev server every shift is an **EAS Android internal build**:

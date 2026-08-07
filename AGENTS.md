@@ -82,7 +82,11 @@ This keeps the project pick-up-able for the next contributor. Do not skip it.
   client; service-role keys never enter the repo.
 - Units, categories, and vendors are configurable per company — never assume one
   universal system.
-- Do not build a marketing landing page before the core mobile workflow is solid.
+- The marketing site is a separate, standalone repo (deployed at the bare
+  domain; this app's web export lives at `app.<domain>`) — as of 2026-08,
+  explicitly authorized because Apple/Google Organization verification both
+  require a live business website. Do not add marketing routes inside this
+  Expo app; see `docs/launch-roadmap.md` Phase 5.
 
 ## Visual QA
 
