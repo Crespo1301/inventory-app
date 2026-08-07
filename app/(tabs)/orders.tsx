@@ -94,18 +94,31 @@ export default function OrdersScreen() {
           )
         ) : (
           <View style={{ gap: spacing.sm }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <AppText variant="heading">{lines.length} items</AppText>
-              <AppText tone="muted">{orderTotal} units total</AppText>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                paddingHorizontal: spacing.xs,
+              }}>
+              <AppText variant="heading">
+                {lines.length} {lines.length === 1 ? 'item' : 'items'}
+              </AppText>
+              <AppText variant="label" tone="muted">
+                {orderTotal} units total
+              </AppText>
             </View>
             {lines.map((line) => (
               <OrderLineCard key={line.id} line={line} canEdit={canVerify} />
             ))}
             {!canVerify ? (
-              <Card style={{ backgroundColor: colors.infoSoft, borderColor: colors.infoSoft }}>
-                <AppText variant="caption" tone="muted">
-                  A manager verifies and finalizes this order.
-                </AppText>
+              <Card style={{ backgroundColor: colors.infoSoft, borderColor: colors.infoSoft, gap: spacing.sm }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Ionicons name="lock-closed" size={16} color={colors.textMuted} />
+                  <AppText variant="caption" tone="muted" style={{ flex: 1 }}>
+                    A manager verifies and finalizes this order.
+                  </AppText>
+                </View>
               </Card>
             ) : null}
           </View>

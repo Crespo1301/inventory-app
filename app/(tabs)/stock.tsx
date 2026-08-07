@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
-import { colors, spacing } from '@/constants/design';
+import { colors, radius, spacing, touchTarget } from '@/constants/design';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -139,7 +139,7 @@ function TranslationToggle() {
         alignItems: 'center',
         gap: spacing.xs + 2,
         backgroundColor: showSpanish ? colors.infoSoft : colors.surfaceSunken,
-        borderRadius: 999,
+        borderRadius: radius.pill,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
       }}>
@@ -171,7 +171,7 @@ function ItemRow({
           onPress={onOpen}
           accessibilityRole="button"
           accessibilityLabel={`Add detail for ${displayName}`}
-          style={{ flex: 1, padding: spacing.lg, gap: 4 }}>
+          style={{ flex: 1, padding: spacing.lg, gap: spacing.xs }}>
           <AppText variant="bodyStrong" numberOfLines={1}>
             {displayName}
           </AppText>
@@ -217,9 +217,10 @@ function QuickButton({
       accessibilityLabel={`Mark ${label}`}
       onPress={onPress}
       style={{
-        minWidth: 60,
-        height: 48,
-        borderRadius: 12,
+        minWidth: touchTarget.min,
+        height: touchTarget.min,
+        paddingHorizontal: spacing.md,
+        borderRadius: radius.md,
         backgroundColor: bg,
         alignItems: 'center',
         justifyContent: 'center',

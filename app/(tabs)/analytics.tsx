@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
-import { colors, spacing } from '@/constants/design';
+import { colors, radius, spacing } from '@/constants/design';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -102,7 +102,9 @@ export default function AnalyticsScreen() {
             </Card>
 
             <View style={{ gap: spacing.md }}>
-              <AppText variant="heading">Top movers this {period}</AppText>
+              <AppText variant="heading" style={{ marginLeft: spacing.xs }}>
+                Top movers this {period}
+              </AppText>
               {snapshot.topItems.length === 0 ? (
                 <Card>
                   <AppText variant="caption" tone="muted">
@@ -125,7 +127,9 @@ export default function AnalyticsScreen() {
             </View>
 
             <View style={{ gap: spacing.md }}>
-              <AppText variant="heading">Seasonal pressure</AppText>
+              <AppText variant="heading" style={{ marginLeft: spacing.xs }}>
+                Seasonal pressure
+              </AppText>
               {snapshot.priorYearsAvailable === 0 ? (
                 <Card>
                   <AppText variant="caption" tone="muted">
@@ -216,11 +220,11 @@ function AreaMixRow({
       <View
         style={{
           height: 10,
-          borderRadius: 999,
+          borderRadius: radius.pill,
           overflow: 'hidden',
           backgroundColor: colors.surfaceSunken,
         }}>
-        <View style={{ width, height: '100%', backgroundColor: color, borderRadius: 999 }} />
+        <View style={{ width, height: '100%', backgroundColor: color, borderRadius: radius.pill }} />
       </View>
     </View>
   );

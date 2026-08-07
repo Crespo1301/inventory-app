@@ -87,6 +87,8 @@ const SF_MAP: Partial<Record<keyof typeof Ionicons.glyphMap, SFSymbol>> = {
   'archive-outline': 'archivebox',
   archive: 'archivebox.fill',
   pricetags: 'tag.fill',
+  card: 'creditcard.fill',
+  'card-outline': 'creditcard',
 };
 
 // ---------------------------------------------------------------------------

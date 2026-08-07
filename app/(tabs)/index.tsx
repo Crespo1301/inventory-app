@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
-import { colors, spacing } from '@/constants/design';
+import { colors, radius, spacing } from '@/constants/design';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -57,7 +57,7 @@ export default function HomeScreen() {
             <Badge tone={app.currentArea === 'foh' ? 'foh' : 'boh'} label={app.currentArea.toUpperCase()} />
           </View>
 
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <PulseMetric
               label="Open flags"
               value={openNotes.length}
@@ -144,7 +144,9 @@ export default function HomeScreen() {
         ) : null}
 
         <View style={{ gap: spacing.md }}>
-          <AppText variant="heading">Recent activity</AppText>
+          <AppText variant="heading" style={{ marginLeft: spacing.xs }}>
+            Recent activity
+          </AppText>
           {recentVerified.length === 0 ? (
             <EmptyState
               icon="time-outline"
@@ -210,7 +212,7 @@ function PulseMetric({
       style={{
         flex: 1,
         minHeight: 108,
-        borderRadius: 16,
+        borderRadius: radius.lg,
         backgroundColor: bg,
         padding: spacing.lg,
         justifyContent: 'space-between',

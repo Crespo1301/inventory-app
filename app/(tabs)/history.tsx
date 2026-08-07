@@ -31,15 +31,22 @@ export default function HistoryScreen() {
               const lines = app.orderLines.filter((l) => l.orderListId === list.id);
               const location = app.locations.find((l) => l.id === list.locationId);
               const total = lines.reduce((s, l) => s + l.finalQty, 0);
+              const when = new Date(list.verifiedAt ?? list.createdAt);
+              const dateLabel = when.toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
               return (
                 <Card key={list.id} style={{ gap: spacing.md }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <AppText variant="bodyStrong">{location?.name ?? 'Location'}</AppText>
+                    <AppText variant="bodyStrong" numberOfLines={1} style={{ flex: 1, paddingRight: spacing.md }}>
+                      {location?.name ?? 'Location'}
+                    </AppText>
                     <Badge tone={list.area === 'foh' ? 'foh' : 'boh'} label={list.area.toUpperCase()} />
                   </View>
                   <AppText variant="caption" tone="muted">
-                    {new Date(list.verifiedAt ?? list.createdAt).toLocaleString()} · {lines.length} items ·{' '}
-                    {total} units
+                    {dateLabel} · {lines.length} {lines.length === 1 ? 'item' : 'items'} · {total} units
                   </AppText>
                   <Button
                     label="Re-share This Order"

@@ -3,8 +3,9 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { colors, spacing } from '@/constants/design';
+import { colors, spacing, touchTarget } from '@/constants/design';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { QuantityStepper } from '@/components/ui/quantity-stepper';
 import { Screen } from '@/components/ui/screen';
 import { SheetHeader } from '@/components/ui/sheet-header';
@@ -36,9 +37,15 @@ export default function FlagScreen() {
 
   if (!item) {
     return (
-      <Screen>
-        <AppText variant="title">Item not found</AppText>
-        <Button label="Close" variant="secondary" onPress={() => router.back()} style={{ marginTop: spacing.lg }} />
+      <Screen
+        topSafeArea={false}
+        header={<SheetHeader title="Flag Item" onClose={() => router.back()} />}
+        footer={<Button label="Close" variant="secondary" size="lg" onPress={() => router.back()} />}>
+        <EmptyState
+          icon="cube-outline"
+          title="Item not found"
+          message="This item may have been removed. Close and pick another from Stock."
+        />
       </Screen>
     );
   }
@@ -80,7 +87,7 @@ export default function FlagScreen() {
         <View>
           <AppText variant="display">{app.displayName(item)}</AppText>
           {app.showSpanish && item.nameEs ? <AppText tone="subtle">{item.name}</AppText> : null}
-          <AppText tone="muted" style={{ marginTop: 4 }}>
+          <AppText tone="muted" style={{ marginTop: spacing.xs }}>
             {item.category} · par level {item.parLevel} {item.unit}
           </AppText>
         </View>
@@ -130,7 +137,7 @@ export default function FlagScreen() {
             value={note}
             onChangeText={setNote}
             multiline
-            style={{ minHeight: 72 }}
+            style={{ minHeight: touchTarget.large + spacing.sm }}
           />
         </Field>
       </View>
