@@ -1,9 +1,9 @@
 # Privacy Policy
 
-**Effective date:** [Effective date]
+**Effective date:** May 18, 2026
 
-This Privacy Policy explains how **[Company name]** ("we", "us", or "our")
-collects, uses, and protects information when you use the **Inventory App**
+This Privacy Policy explains how **Carlos Crespo** ("we", "us", or "our")
+collects, uses, and protects information when you use the **Kitchen Inventory**
 mobile application ("the App"). Please read it carefully. By using the App, you
 agree to the practices described here.
 
@@ -145,9 +145,9 @@ the updated policy.
 If you have questions about this Privacy Policy or want to exercise your data
 rights (access, correction, or deletion), please contact us:
 
-**[Company name]**
-[support email]
+**Carlos Crespo**
+crespo.csolutions@gmail.com
 
 ---
 
-*This policy covers the Inventory App mobile application only.*
+*This policy covers the Kitchen Inventory mobile application only.*

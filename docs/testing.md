@@ -17,9 +17,15 @@
 npm run start:tunnel
 ```
 
-Always use **tunnel mode** for device testing. The plain `npm start` serves over
-the LAN, which a phone cannot reach on WSL2 or many networks — the QR connects
-but then times out. Tunnel routes through a public URL that always works.
+Use **tunnel mode** first for device testing. If ngrok fails with `remote gone
+away`, fall back to:
+
+```bash
+npm run start:lan
+```
+
+The plain `npm start` serves over the LAN, which may or may not be reachable
+from a phone on WSL2 depending on the network path.
 
 If you want to use **Expo web** for layout QA, make sure the shell is on Node
 `20.19.4` from `.nvmrc`. In this repo, Expo web crashed on Node `20.19.0` with
@@ -40,14 +46,16 @@ Roles need separate accounts. The fastest path:
    Create one invitation with role *Manager* and one with role *Team Member*.
    Each produces a 6-character code, and if the Edge Function is deployed the
    recipient should also receive an email.
-3. **Log out**, then use **"Join a company"** on the signup screen with an
-   invited email + its code to create the manager and member accounts.
+3. **Log out**, then use **"I Have an Invite"** from the auth home screen with
+   an invited email + its code to create the manager and member accounts.
 4. Switch roles by logging out and back in. To see realtime sync, run the app on
    two devices/simulators signed in as different roles in the same company.
 
 ## Core Test Scenarios
 
 - [ ] Sign up → land in the app as admin with one location.
+- [ ] Auth home screen clearly splits the three paths: Log In, I Have an
+      Invite, Create a New Company.
 - [ ] Manage → Items → add items for both BOH and FOH (par level, unit, pack).
 - [ ] Manage → Items → open **Add Item**, use **Cancel** to return safely, then
       reopen it and save an item.

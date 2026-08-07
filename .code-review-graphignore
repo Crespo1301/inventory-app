@@ -1,0 +1,14 @@
+# Code-review-graph ignore patterns.
+# Keep the graph focused on the inventory-app code; skip vendored skills,
+# generated assets, and AI worktrees.
+
+.agents/
+.claude/skills/
+.claude/worktrees/
+.code-review-graph/
+.expo/
+dist/
+web-build/
+node_modules/
+assets/
+docs/archive/
