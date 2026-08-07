@@ -51,6 +51,15 @@ function roleLabel(role: InvitationRole): string {
   return role === 'manager' ? 'Manager' : 'Team Member';
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -109,17 +118,24 @@ Deno.serve(async (req: Request) => {
     .filter(Boolean)
     .join('\n');
 
+  const safeInvitationLine = escapeHtml(invitationLine);
+  const safeLocationLine = escapeHtml(locationLine);
+  const safeReplyLine = escapeHtml(replyLine);
+  const safeAppName = escapeHtml(appName);
+  const safeCode = escapeHtml(code);
+  const safeInviteeEmail = escapeHtml(inviteeEmail);
+
   const html = `
     <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
-      <p>${invitationLine}</p>
-      ${locationLine ? `<p>${locationLine}</p>` : ''}
+      <p>${safeInvitationLine}</p>
+      ${safeLocationLine ? `<p>${safeLocationLine}</p>` : ''}
       <div style="margin: 24px 0; padding: 16px; background: #f3f4f6; border-radius: 12px;">
         <p style="margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280;">Invitation code</p>
-        <p style="margin: 8px 0 0; font-size: 28px; font-weight: 700; letter-spacing: 0.12em;">${code}</p>
+        <p style="margin: 8px 0 0; font-size: 28px; font-weight: 700; letter-spacing: 0.12em;">${safeCode}</p>
       </div>
-      <p>Open ${appName}, choose <strong>Join a company</strong>, and sign up with <strong>${inviteeEmail}</strong>.</p>
+      <p>Open ${safeAppName}, choose <strong>Join a company</strong>, and sign up with <strong>${safeInviteeEmail}</strong>.</p>
       <p>Enter the invitation code above when prompted.</p>
-      ${replyLine ? `<p>${replyLine}</p>` : ''}
+      ${safeReplyLine ? `<p>${safeReplyLine}</p>` : ''}
     </div>
   `;
 
