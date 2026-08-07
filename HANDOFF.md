@@ -24,6 +24,12 @@ Released baseline: `v0.2.0` on 2026-05-18.
 **Working end to end:**
 
 - Signup creates a company + admin; login; join-a-company by invite code.
+- Auth now starts on a clearer chooser screen: **Log In**, **I Have an Invite**,
+  or **Create a New Company**, which removes the old confusion where invitees
+  looked like they should start by creating a company.
+- First-run tutorial: a 5-screen bilingual (EN/ES) welcome walkthrough shows
+  once after a user's first sign-in — skippable, with a language toggle that
+  also sets the app's Spanish preference. Tracked per user in AsyncStorage.
 - Role-aware app: Admin, Manager (location-scoped), Team Member (location-scoped).
 - Home dashboard: managers/admins now land on a dedicated home surface with
   operational pulse, quick actions, and recent activity instead of jumping
@@ -34,7 +40,11 @@ Released baseline: `v0.2.0` on 2026-05-18.
 - Analytics: managers/admins can compare verified order activity across day,
   week, month, and year views, with current-vs-previous metrics, area mix, top
   movers, and seasonal watchlists.
-- Manage: items, locations, team members, invitations.
+- Manage: items, locations (every location is editable — tap to edit name and
+  address, including the first one created at signup), team members, invitations.
+- Plan & Billing: admins see the company's subscription tier, live usage
+  against plan limits, and a Starter/Pro/Multi-Location comparison. Billing is
+  stubbed — limits are defined but not enforced yet.
 - Supabase: Postgres + row-level security + realtime sync across devices.
 - In-app account deletion (Account screen) — meets the App Store requirement.
 - iOS-native design pass: collapsing large titles, inset grouped lists, modal
@@ -47,15 +57,26 @@ Released baseline: `v0.2.0` on 2026-05-18.
   reconnect; a banner shows offline/unsynced state, and temp-note replacement
   no longer queues invalid server IDs.
 - EAS build config committed; privacy policy drafted (`docs/privacy-policy.md`).
+- Expo app config is now variant-aware: development, preview, and production
+  builds use distinct names / bundle identifiers so a live build and a dev build
+  can be installed side by side on one device.
 - Invite email delivery is scaffolded through a Supabase Edge Function with
   manual code-share fallback when the function secrets are not configured yet.
+- App Store readiness: privacy policy finalized, an in-app Privacy Policy +
+  Contact Support section is on the Account screen, and export compliance is
+  pre-declared in `app.config.ts`. Remaining store work is account-gated
+  (Apple Developer Program, screenshots, demo account, hosting the policy).
 
 **Architecture map:**
 
 - `app/` — screens (Expo Router). `(auth)`, `(tabs)`, `manage/`.
 - `components/ui/` — design-system components.
 - `constants/design.ts` — design tokens.
-- `src/domain/` — types, suggestion engine, permissions, export.
+- `src/domain/` — types, suggestion engine, permissions, analytics, billing,
+  export.
+- `src/onboarding/onboarding-store.tsx` — first-run tutorial gate (per-user
+  AsyncStorage flag). `app/onboarding.tsx` — the tutorial screen.
+- `scripts/make-icon.js` — regenerates the app icon set from authored geometry.
 - `src/supabase/` — client. `src/data/repo.ts` — data layer. `src/auth/` — auth.
 - `src/store/app-store.tsx` — in-memory store, realtime-synced.
 
@@ -70,36 +91,102 @@ Released baseline: `v0.2.0` on 2026-05-18.
   `configs.toReversed is not a function`.
 - If tunnel fails with ngrok `remote gone away`, use `npm run start:lan` for
   same-network testing or `npm start` for local/browser work, then retry tunnel
-  later.
+  later. Full WSL2 Expo Go troubleshooting (QR does nothing, tunnel fails,
+  manual `exp://` entry, Windows `portproxy` fallback) is in
+  `docs/getting-started.md` → "Troubleshooting: Expo Go won't connect (WSL2)".
 - One-time: disable "Confirm email" in the Supabase dashboard for test signups.
-- EAS build config is committed (`eas.json`, bundle IDs); see `docs/eas-build.md`.
+- EAS build config is committed (`eas.json`, `app.config.ts`); see
+  `docs/eas-build.md`. `app.config.ts` is the sole Expo config — `app.json`
+  was removed to stop EAS's "Cannot automatically write to dynamic config"
+  failure. `extra.eas.projectId` is declared explicitly inside it.
 
 ## Next Steps (priority order)
 
-1. **Visual QA on the new dashboard/nav shell** — re-run device and/or web QA on
-   Node `20.19.4` specifically, focusing on: Home ↔ Stock ↔ Analytics tab flow,
-   Manage close paths, and lower-edge spacing on iPhones with a home indicator.
-2. **First EAS build** — config is in place: `eas.json` (development / preview /
-   production profiles), iOS `bundleIdentifier` + Android `package`, and
-   `docs/eas-build.md`. Remaining is account-gated and interactive: run
+0. **Get the app on one real restaurant device — free, no Apple Developer.**
+   The cheapest live-in-a-kitchen path that does **not** require us to run a
+   dev server every shift is an **EAS Android internal build**:
+   `eas login` → `eas init` → `eas build --profile preview --platform android`.
+   The build runs in EAS cloud, you get an installable `.apk`/`.aab` URL,
+   the restaurant scans the QR and installs it on any Android device,
+   and it talks straight to Supabase — no Mac, no Apple ID, no laptop on the
+   counter. For iPhone-only kitchens with no $99 Apple budget the only free
+   path stays **Expo Go via `npm run start:tunnel`**, which does need the dev
+   server reachable. Pick one Android device per pilot restaurant; if iOS is
+   non-negotiable, budget for Apple Developer Program enrollment and use the
+   TestFlight path in step 2.
+1. **Auth + shell device QA** — re-run device QA on Node `20.19.4`, focusing on:
+   auth home path clarity (login vs invite vs new company), Home ↔ Stock ↔
+   Analytics tab flow, Manage close paths, and lower-edge spacing on iPhones
+   with a home indicator.
+2. **First EAS build** — config is in place: `eas.json` plus variant-aware
+   `app.config.ts` (development / preview / production profiles). Remaining is
+   account-gated and interactive: run
    `eas login` → `eas init` → `eas build --profile production --platform ios`
    → `eas submit` to reach TestFlight. Needs an Expo account and the Apple
    Developer Program.
-3. **Host the privacy policy** — `docs/privacy-policy.md` is drafted; fill its
-   placeholders (`[Effective date]`, `[Company name]`, `[support email]`), host
-   it at an HTTPS URL, link it in App Store Connect and from the Account screen.
-4. **App Store Connect prep** — App Privacy details, app icon, 6.9" screenshots,
-   a confirmed demo account for review.
+   For a side-by-side non-Expo-Go demo build, use `eas build --profile preview`
+   first; for your own installed dev client, use `eas build --profile development`.
+
+   **Environment constraint (2026-05-18):** the dev machine is Windows-only and
+   the Apple ID `crespo1301@gmail.com` is NOT enrolled in the Apple Developer
+   Program. Consequences:
+   - An iOS device build is blocked until the $99/yr Apple Developer Program
+     enrollment is done (the EAS Apple login succeeds but reports "no team").
+   - An iOS Simulator build is pointless here — the Simulator only runs on
+     macOS.
+   - **For iOS testing now, use Expo Go**: `npx expo start`, scan the QR with
+     Expo Go on a physical iPhone. The app's deps are all Expo-Go-compatible,
+     so the full Stock → Order Planner → Analytics flow is testable with no
+     Mac, no build, no Apple account.
+   - Android dev builds (`eas build --profile development --platform android`)
+     work fully on Windows with no Apple account.
+   - The iOS EAS *build* runs in Apple's cloud and never needs a local Mac;
+     only Developer Program enrollment is the gate.
+3. **Host the privacy policy** — `docs/privacy-policy.md` is now finalized
+   (Carlos Crespo, crespo.csolutions@gmail.com, effective May 18 2026) and the
+   Account screen already links to it ("About → Privacy Policy"). Remaining:
+   publish the policy at a public HTTPS URL, then update `PRIVACY_POLICY_URL`
+   in `constants/app-meta.ts` and paste the same URL into App Store Connect.
+   The placeholder URL is `https://carloscrespo.info/kitchen-inventory/privacy`.
+4. **App Store Connect prep** — listing copy is drafted in
+   `docs/app-store-listing.md` (name, subtitle, keywords, description, review
+   notes, App Privacy declarations). The app icon is now final — the
+   clipboard-and-check mark in `assets/images/icon.png`, generated by
+   `scripts/make-icon.js` (edit the geometry there and re-run to revise).
+   Remaining: capture 6.9" (1320×2868) screenshots from real screens, create a
+   confirmed admin+manager demo account, and fill the support/marketing URLs.
 5. **Deploy invite email delivery** — the app now invokes
    `supabase/functions/send-invitation-email`, but Supabase still needs the
    function deployed plus `RESEND_API_KEY` and `INVITE_EMAIL_FROM` secrets (and
    optionally `INVITE_EMAIL_REPLY_TO` / `INVITE_EMAIL_APP_NAME`) before invites
    send automatically.
-6. **Subscription tiers** — gating and billing, after real-kitchen testing.
+6. **Subscription tiers — finish billing** — the tier model
+   (`src/domain/billing.ts`) and the in-app Plan & Billing screen are built,
+   but billing is stubbed and limits are not enforced. Remaining, after
+   real-kitchen testing: add a `companies.plan` text column (default
+   `'starter'`) via a Supabase migration so the chosen plan persists — this
+   touches the `companies` table and its RLS; failure mode is a company stuck
+   on the Starter default — wire a payment provider, and enforce the limits in
+   `canAddWithinPlan()` at the `addLocation` / `createInvitation` call sites.
+
+7. **Full multi-language support** — the app is bilingual EN/ES today, but in
+   two narrow ways: the tutorial (`app/onboarding.tsx`, with inline `en`/`es`
+   copy) and item names (`Item.name` + optional `Item.nameEs`, toggled by the
+   `showSpanish` boolean in `app-store`). The stated goal is more languages.
+   That needs: a real locale setting (replace the `showSpanish` boolean with a
+   `locale` value), a proper i18n layer for all UI strings (today they are
+   inline literals across screens), and per-language item names (replace
+   `name`/`nameEs` with a translations map — a schema change on `items`,
+   affecting RLS and the data layer). Scope this before adding a third
+   language; each new language then only needs translated copy.
 
 Done: in-app account deletion, the iOS-native design pass (large titles, grouped
 lists, sheets, SF Symbols, skeletons), the offline write queue, EAS build config,
-and the privacy policy draft.
+the privacy policy draft, the final app icon, the subscription-tier model +
+Plan & Billing screen, the first-run bilingual tutorial, a design-polish
+pass across all screens, an HTML-injection fix in the invite-email Edge
+Function, and a `.code-review-graphignore` so the graph stops indexing
+vendored skill scripts.
 
 See `docs/launch-roadmap.md` for the phased plan and `docs/app-store-requirements.md`
 for the full submission checklist.
@@ -112,8 +199,8 @@ for the full submission checklist.
   row; the new record appears after reconnect and sync.
 - Invite delivery falls back to manual code sharing until the Supabase Edge
   Function is deployed with its email secrets.
-- Expo web preview is currently blocked in this shell until Node is bumped from
-  `20.19.0` to the repo target `20.19.4`.
+- Expo web preview is currently blocked in shells still on Node `20.19.0`; use
+  the repo target `20.19.4`.
 - "Confirm email" is expected OFF during testing.
 
 ---

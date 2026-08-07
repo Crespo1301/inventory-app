@@ -10,6 +10,29 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ### Added
 
+- A first-run tutorial (`app/onboarding.tsx`) — a 5-screen welcome walkthrough
+  shown once after a user's first sign-in (new admins and invited team members
+  alike), built for non-tech-savvy kitchen staff: one idea per screen, large
+  icons and text, large buttons, an always-available Skip, and Back/Next.
+  Fully bilingual (English / Spanish) with an in-tutorial language toggle; the
+  language choice also sets the app's Spanish-item-name preference. Completion
+  is tracked per user in AsyncStorage via `src/onboarding/onboarding-store.tsx`
+  and gated in `app/_layout.tsx`; the gate fails open so a storage error can
+  never trap a user on the tutorial. The Account screen gains a "How the app
+  works" entry that replays the tutorial at any time.
+- Subscription tiers (`src/domain/billing.ts`) — Starter, Pro, and
+  Multi-Location plans with per-plan capacity limits (locations, team members,
+  history retention), premium-feature flags, and helpers for usage meters,
+  per-action limit checks, and recommending the cheapest fitting plan.
+- A **Plan & Billing** screen (`app/manage/plan.tsx`, Account → Plan & billing,
+  admin only) showing the current plan, live usage meters against plan limits,
+  an over-capacity warning with the recommended upgrade, and a comparison of
+  all plans. Billing is stubbed — selecting a plan explains it goes live with
+  the first paid release; no limits are enforced yet.
+- The final Kitchen Inventory app icon set — a flat clipboard-and-check mark on
+  brand green — replacing the Expo placeholder. `scripts/make-icon.js`
+  generates the iOS master, Android adaptive foreground/background/monochrome,
+  splash icon, and favicon reproducibly from authored geometry.
 - A true manager/admin home dashboard (`app/(tabs)/index.tsx`) with operational
   pulse cards, quick actions, recent activity, and direct routes into stock,
   orders, analytics, and management.
@@ -23,9 +46,41 @@ off. See [HANDOFF.md](./HANDOFF.md).
   (`supabase/functions/send-invitation-email`) with Resend-based sending and a
   client-side manual-share fallback when the function or secrets are not yet
   configured.
+- A dedicated auth home screen (`app/(auth)/index.tsx`) that separates the
+  three starting paths: existing user login, invite claim, and new company
+  signup.
+- Variant-aware Expo app config (`app.config.ts`) so `development`, `preview`,
+  and `production` builds can install side by side with distinct app names and
+  bundle identifiers.
+- In-app **Privacy Policy** and **Contact Support** links in an "About" section
+  on the Account screen, satisfying Apple's reachable-privacy-link requirement.
+- `constants/app-meta.ts` holding `SUPPORT_EMAIL` and `PRIVACY_POLICY_URL`
+  (the URL is a placeholder until the policy is publicly hosted).
+- WSL2 Expo Go troubleshooting guide in `docs/getting-started.md` — ordered
+  checklist for the "QR does nothing" / tunnel-fails case, including the
+  manual `exp://` entry and Windows `portproxy` fallbacks.
+- App Store Connect listing draft (`docs/app-store-listing.md`) — app name,
+  subtitle, keywords, promotional text, full description, review notes,
+  App Privacy declarations, and the icon/screenshot specs.
+- App icon design brief (`docs/archive/icon-brief.md`) — concept direction,
+  brand colors, composition grid, technical specs, and an acceptance checklist
+  for replacing the Expo placeholder icon. Now fulfilled and archived.
 
 ### Changed
 
+- `app.config.ts` is now the single Expo config source of truth; the static
+  `app.json` was removed. The dynamic config inlines all former `app.json`
+  values and declares `extra.eas.projectId` explicitly, so EAS no longer fails
+  with "Cannot automatically write to dynamic config" during `eas build`.
+- `app.config.ts` now declares `ios.infoPlist.ITSAppUsesNonExemptEncryption:
+  false`, resolving the EAS dynamic-config write prompt and pre-answering the
+  App Store export-compliance question.
+- Privacy policy (`docs/privacy-policy.md`) finalized — placeholders filled
+  (Carlos Crespo, crespo.csolutions@gmail.com, effective May 18 2026) and the
+  app name corrected to "Kitchen Inventory" throughout.
+- App Store / EAS docs corrected: stale `app.json` references in
+  `docs/app-store-requirements.md` and `docs/eas-build.md` now point to
+  `app.config.ts`; export-compliance item checked off.
 - The tab shell is now safe-area-aware at the bottom, reducing the clipped /
   too-low feel on devices with a home indicator.
 - Shared screen frames now add more bottom breathing room so lower content and
@@ -40,6 +95,61 @@ off. See [HANDOFF.md](./HANDOFF.md).
 - Invite creation now attempts to email the invite automatically and then shows
   either an "Invitation emailed" or manual-share confirmation instead of always
   assuming code-only delivery.
+- Auth copy now makes the invite path explicit on login and signup, and the join
+  screen is framed as claiming an invite instead of generically joining a
+  company.
+- `Company` gains an optional `plan` field (`src/domain/index.ts`); `repo.ts`
+  maps it from the `companies` row when present. The Supabase column does not
+  exist yet — until a `companies.plan` migration lands, `planFor()` defaults
+  every company to Starter.
+- Android adaptive-icon `backgroundColor` is now brand green (`#15A150`) instead
+  of the old placeholder light blue, matching the new icon background layer.
+- Hardcoded `borderRadius` values in the Stock, Analytics, and Home screens now
+  use the `radius` design tokens for consistency.
+- Design-polish pass across the app's screens (spacing rhythm, alignment,
+  token consistency, UX copy) with no behavior changes:
+  - Stock/Orders/History: tokenized remaining raw sizes, fixed quick-button
+    touch targets, baseline-aligned the order list header, clearer date
+    formatting and singular/plural copy in History.
+  - `app/flag.tsx`: the "item not found" case now uses the standard
+    `EmptyState` inside the sheet shell instead of a bare message.
+  - Home/Analytics: standalone section headings aligned to the same optical
+    column as inset-list section headers; tightened metric-row rhythm.
+  - Account: the "Delete Account" control now meets the 48 pt touch-target
+    minimum.
+  - Manage/Auth: the people-screen remove/cancel buttons now meet the 48 pt
+    minimum (were ~26 pt); auth screens normalized for accent color and
+    heading spacing.
+
+### Fixed
+
+- The Manage → Locations screen is now editable. Every location — including
+  the first one created during company signup, which previously had no address
+  and no way to edit it — can be tapped to update its name and address. The
+  screen reuses its form card in an "Edit location" mode with Save / Cancel.
+- `supabase/functions/send-invitation-email` now HTML-escapes every
+  user-supplied field (company name, inviter name, invitee email, invite code,
+  location names, reply line, app name) before interpolating them into the
+  outbound email body. Closes an HTML-injection vector where a malicious
+  company name could embed markup or links in invite emails.
+
+### Tooling
+
+- Added `.code-review-graphignore` so the code-review-graph stops indexing
+  `.agents/skills/`, `.claude/skills/`, `.claude/worktrees/`, `.expo/`,
+  `assets/`, and `docs/archive/`. Without it the graph was inflated with
+  vendored skill scripts (~85% of "large functions" were skill-tool code, not
+  app code). Run `code-review-graph build --skip-flows` after pulling to
+  refresh the local DB; `.code-review-graph/` itself stays gitignored.
+
+### Docs
+
+- Added `TODO.md` — a dated personal action list for owner-only launch tasks
+  (device QA, account-gated steps), separate from the code-focused `HANDOFF.md`.
+- Archived the fulfilled app icon brief to `docs/archive/icon-brief.md` and
+  added `docs/archive/README.md`. Updated `eas-build.md`,
+  `app-store-requirements.md`, `app-store-listing.md`, and `launch-roadmap.md`
+  to mark the icon done and point at `scripts/make-icon.js`.
 
 ## [0.2.0] - 2026-05-18
 
