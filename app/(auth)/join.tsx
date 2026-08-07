@@ -52,7 +52,7 @@ export default function JoinScreen() {
           }}>
           <Ionicons name="people" size={32} color={colors.textOnColor} />
         </View>
-        <AppText variant="display">Join a company</AppText>
+        <AppText variant="display">Claim your invite</AppText>
         <AppText tone="muted" style={{ textAlign: 'center' }}>
           Use the invite code an admin or manager gave you. It must match the email they invited.
         </AppText>
@@ -96,6 +96,12 @@ export default function JoinScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xs }}>
+        <Link href="/" replace>
+          <AppText tone="muted" style={{ fontWeight: '600' }}>
+            Back
+          </AppText>
+        </Link>
+        <AppText tone="muted">•</AppText>
         <AppText tone="muted">Starting your own company?</AppText>
         <Link href="/signup" replace>
           <AppText tone="primary" style={{ fontWeight: '700' }}>

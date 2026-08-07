@@ -65,6 +65,24 @@ export default function SignupScreen() {
         </AppText>
       </View>
 
+      <View
+        style={{
+          gap: spacing.xs,
+          padding: spacing.lg,
+          borderRadius: radius.lg,
+          backgroundColor: colors.primarySoft,
+        }}>
+        <AppText variant="label">This path is for new company admins.</AppText>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+          <AppText tone="muted">If someone invited you to an existing company,</AppText>
+          <Link href="/join" replace>
+            <AppText tone="primary" style={{ fontWeight: '700' }}>
+              use your invite code instead
+            </AppText>
+          </Link>
+        </View>
+      </View>
+
       <View style={{ gap: spacing.lg }}>
         <TextField label="Your name" icon="person" placeholder="First and last" value={name} onChangeText={setName} />
         <TextField
@@ -109,12 +127,12 @@ export default function SignupScreen() {
         <Button label="Create Account" size="lg" loading={busy} onPress={submit} />
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <Ionicons name="key" size={16} color={colors.infoPressed} />
+          <Ionicons name="key" size={16} color={colors.textMuted} />
           <AppText variant="caption" tone="muted">
             Have an invite code?
           </AppText>
           <Link href="/join" replace>
-            <AppText variant="caption" tone="primary" style={{ fontWeight: '800' }}>
+            <AppText variant="caption" tone="primary" style={{ fontWeight: '700' }}>
               Join an existing company
             </AppText>
           </Link>
@@ -122,6 +140,12 @@ export default function SignupScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xs }}>
+        <Link href="/" replace>
+          <AppText tone="muted" style={{ fontWeight: '600' }}>
+            Back
+          </AppText>
+        </Link>
+        <AppText tone="muted">•</AppText>
         <AppText tone="muted">Already have an account?</AppText>
         <Link href="/login" replace>
           <AppText tone="primary" style={{ fontWeight: '700' }}>

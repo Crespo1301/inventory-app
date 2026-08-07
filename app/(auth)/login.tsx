@@ -34,7 +34,7 @@ export default function LoginScreen() {
 
   return (
     <Screen contentStyle={{ paddingTop: spacing.xxxl, gap: spacing.xxl }}>
-      <View style={{ alignItems: 'center', gap: spacing.md }}>
+      <View style={{ alignItems: 'center', gap: spacing.sm }}>
         <View
           style={{
             width: 64,
@@ -50,6 +50,26 @@ export default function LoginScreen() {
         <AppText tone="muted" style={{ textAlign: 'center' }}>
           Log in to flag stock, plan orders, and keep your kitchen ahead.
         </AppText>
+      </View>
+
+      <View
+        style={{
+          gap: spacing.xs,
+          padding: spacing.lg,
+          borderRadius: radius.lg,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}>
+        <AppText variant="label">Were you invited by a manager or admin?</AppText>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+          <AppText tone="muted">Use your invite code first.</AppText>
+          <Link href="/join" replace>
+            <AppText tone="primary" style={{ fontWeight: '700' }}>
+              Claim your invite here
+            </AppText>
+          </Link>
+        </View>
       </View>
 
       <View style={{ gap: spacing.lg }}>
@@ -82,6 +102,12 @@ export default function LoginScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.xs }}>
+        <Link href="/" replace>
+          <AppText tone="muted" style={{ fontWeight: '600' }}>
+            Back
+          </AppText>
+        </Link>
+        <AppText tone="muted">•</AppText>
         <AppText tone="muted">New here?</AppText>
         <Link href="/signup" replace>
           <AppText tone="primary" style={{ fontWeight: '700' }}>
