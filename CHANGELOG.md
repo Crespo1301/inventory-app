@@ -8,8 +8,25 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ## [Unreleased]
 
+### Security
+
+- Ran the non-breaking `npm audit fix`. Advisory count dropped from 32 → 25
+  (2 critical → 0, 15 high → 10, 14 moderate → 15, 1 low → 0). Both criticals
+  (`shell-quote`, `tar`) plus the `@babel/core`, `brace-expansion`, `fast-uri`,
+  `js-yaml`, `nanoid`, and `undici` findings are resolved. Only
+  `package-lock.json` changed; no direct dep bumped, no Expo SDK move,
+  `npm run verify` stays green.
+- Every remaining advisory (25) is transitive through the Expo/RN/Metro/
+  dev-client toolchain and does not ship in the compiled iOS/Android bundle.
+  Force-fixing them requires jumping Expo 54 → 57 (three major versions);
+  documented as a scheduled upgrade sprint, deferred behind the current
+  entity-formation and pilot-device work.
+
 ### Docs
 
+- New `docs/dependency-audit.md` — baseline of the 2026-08-21 audit pass:
+  fixes applied, per-package classification of what remains (all dev/build
+  tooling), and the recommended Expo 57 upgrade path with guardrails.
 - Restructured `docs/launch-roadmap.md` and `docs/app-store-requirements.md`:
   Android is now equal priority with iOS (was "secondary"), added Phase 0
   (CSolutions entity formation — LLC/EIN/D-U-N-S — blocking Organization

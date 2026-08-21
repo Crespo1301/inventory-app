@@ -21,6 +21,16 @@ A working, multi-role restaurant inventory & ordering app on a Supabase backend.
 `npm run verify` (lint + typecheck) passes; the iOS bundle exports clean.
 Released baseline: `v0.2.0` on 2026-05-18.
 
+**Dependency-audit snapshot (2026-08-21):** `npm audit --omit=dev
+--audit-level=high` now reports **25 vulnerabilities (0 critical, 10 high, 15
+moderate)**, down from 32 (2 critical / 15 high) after a non-breaking `npm
+audit fix`. Every remaining advisory is transitive through the Expo / RN /
+Metro / dev-client toolchain (Metro's `image-size`, `postcss`, `ws` in devtools,
+`uuid` via `xcode`, the `@expo/*` config chain). None are reachable in the
+shipped app bundle; exposure is limited to a developer's laptop while running
+the CLI. Force-fixing the rest requires jumping Expo 54 → 57 — deferred as a
+Codex-owned upgrade sprint. Full write-up in `docs/dependency-audit.md`.
+
 **Strategic direction as of 2026-08**: Android is now equal priority with
 iOS (was secondary); the product is also going to the web via Expo's static
 web export (`app.<domain>`), and a standalone marketing site repo
