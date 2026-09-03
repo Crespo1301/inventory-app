@@ -10,6 +10,14 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ### Security
 
+- 2026-09-03 weekly automation: ran another non-breaking `npm audit fix`.
+  The current audit is **30 vulnerabilities** (0 critical, 9 high, 21
+  moderate). Only `package-lock.json` changed; `package.json`, app code, Expo
+  SDK, and React Native stayed unchanged. `npm run verify` still passes, and
+  `npm audit fix --force` remains deferred because it proposes Expo
+  `57.0.19`, a major upgrade that needs a dedicated branch and device/EAS QA.
+  This shell also emitted Node engine warnings on `20.19.0`; use the pinned
+  `20.19.4` or newer runtime for preview/build work.
 - Ran the non-breaking `npm audit fix`. Advisory count dropped from 32 → 25
   (2 critical → 0, 15 high → 10, 14 moderate → 15, 1 low → 0). Both criticals
   (`shell-quote`, `tar`) plus the `@babel/core`, `brace-expansion`, `fast-uri`,
@@ -24,6 +32,9 @@ off. See [HANDOFF.md](./HANDOFF.md).
 
 ### Docs
 
+- Updated `docs/dependency-audit.md` and `HANDOFF.md` with the 2026-09-03
+  dependency-audit snapshot, current advisory count, force-upgrade boundary,
+  and Node engine warning.
 - New `docs/dependency-audit.md` — baseline of the 2026-08-21 audit pass:
   fixes applied, per-package classification of what remains (all dev/build
   tooling), and the recommended Expo 57 upgrade path with guardrails.

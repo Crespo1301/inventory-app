@@ -21,15 +21,16 @@ A working, multi-role restaurant inventory & ordering app on a Supabase backend.
 `npm run verify` (lint + typecheck) passes; the iOS bundle exports clean.
 Released baseline: `v0.2.0` on 2026-05-18.
 
-**Dependency-audit snapshot (2026-08-21):** `npm audit --omit=dev
---audit-level=high` now reports **25 vulnerabilities (0 critical, 10 high, 15
-moderate)**, down from 32 (2 critical / 15 high) after a non-breaking `npm
-audit fix`. Every remaining advisory is transitive through the Expo / RN /
-Metro / dev-client toolchain (Metro's `image-size`, `postcss`, `ws` in devtools,
-`uuid` via `xcode`, the `@expo/*` config chain). None are reachable in the
-shipped app bundle; exposure is limited to a developer's laptop while running
-the CLI. Force-fixing the rest requires jumping Expo 54 → 57 — deferred as a
-Codex-owned upgrade sprint. Full write-up in `docs/dependency-audit.md`.
+**Dependency-audit snapshot (2026-09-03):** `npm audit --omit=dev
+--audit-level=high` now reports **30 vulnerabilities (0 critical, 9 high, 21
+moderate)** after a second non-breaking `npm audit fix`. Only
+`package-lock.json` changed; `package.json`, app source, Expo SDK, and React
+Native stayed unchanged. The remaining high advisories are still concentrated
+in the Expo / RN / Metro / dev-client toolchain (`image-size`, `postcss`, Metro,
+and the `@expo/*` config chain). The moderate `decode-uri-component` /
+React Navigation chain has no non-force fix in the current Expo 54 tree.
+Force-fixing the rest proposes Expo `57.0.19` — deferred as a dedicated upgrade
+sprint with device/EAS QA. Full write-up in `docs/dependency-audit.md`.
 
 **Strategic direction as of 2026-08**: Android is now equal priority with
 iOS (was secondary); the product is also going to the web via Expo's static
@@ -105,8 +106,9 @@ full restructured plan.
 - Run with `npm run start:tunnel` (tunnel required on WSL2). The start scripts
   skip Expo's remote dependency validation because that API fetch can fail on
   this WSL2/network path after the tunnel is already connected.
-- Local web preview currently needs the repo's pinned Node `20.19.4`; this
-  shell was on `20.19.0`, and `npm run web` crashed in Expo/Metro with
+- Local web preview and build work should use the repo's pinned Node `20.19.4`
+  or newer. This shell was on `20.19.0`; `npm audit fix` emitted engine
+  warnings, and prior `npm run web` crashed in Expo/Metro with
   `configs.toReversed is not a function`.
 - If tunnel fails with ngrok `remote gone away`, use `npm run start:lan` for
   same-network testing or `npm start` for local/browser work, then retry tunnel
